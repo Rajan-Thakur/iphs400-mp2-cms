@@ -1,6 +1,10 @@
 # ADR-003: Roster and Events are Pages, not dedicated content types
 
-**Status:** accepted
+**Status:** superseded — 2026-10-01, project scope pivoted to a generic CMS
+with no specific client (verbal direction from the instructor). There is no
+longer a "Roster" or "Events" concept at all: the generic content model is
+just Post and Page. Kept for the record rather than deleted, since the
+decision and its reasoning were real at the time.
 **Date:** 2026-09-29
 
 ## Context
