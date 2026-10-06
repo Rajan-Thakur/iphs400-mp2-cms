@@ -105,6 +105,7 @@ def test_anonymous_is_redirected_from_preview_routes(client, path):
 def test_editor_gets_403_on_every_admin_only_get_route(client_as, seeded_ids, path_template):
     response = client_as("editor").get(path_template.format(**seeded_ids))
     assert response.status_code == 403
+    assert "Access denied" in response.text
 
 
 @pytest.mark.parametrize("path_template,body", POST_ROUTES_ADMIN_ONLY)
@@ -113,6 +114,7 @@ def test_editor_gets_403_on_every_admin_only_post_route(client_as, seeded_ids, p
     csrf = extract_csrf(editor.get("/admin").text)  # any admin page carries one
     response = editor.post(path_template.format(**seeded_ids), data={**body, "csrf_token": csrf})
     assert response.status_code == 403
+    assert "Access denied" in response.text
 
 
 # -- 3. every state-changing form rejects a forged CSRF token --

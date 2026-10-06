@@ -83,7 +83,7 @@ def test_editor_cannot_publish_a_page(client_as):
     csrf2 = extract_csrf(editor.get("/admin/pages").text)
     response = editor.post(f"/admin/pages/{page_id}/publish", data={"csrf_token": csrf2})
     assert response.status_code == 403
-    assert "admin" in response.json()["detail"].lower()
+    assert "Only an Admin can publish" in response.text
 
 
 def test_page_crud_rejects_wrong_csrf(client_as):

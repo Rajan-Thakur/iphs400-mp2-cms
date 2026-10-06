@@ -53,7 +53,7 @@ ADMIN_PAGES = [
 ]
 
 
-def _assert_links_resolve(client, page_path: str, html: str) -> None:
+def assert_links_resolve(client, page_path: str, html: str) -> None:
     """Every href/action in `html`, as served at `page_path`, is relative and
     resolves to a real route from there."""
     parser = _Links()
@@ -81,11 +81,11 @@ def test_every_admin_link_is_relative_and_resolves(client_as, seeded_ids, path_t
     path = path_template.format(**seeded_ids)
     response = admin.get(path)
     assert response.status_code == 200, path
-    _assert_links_resolve(admin, path, response.text)
+    assert_links_resolve(admin, path, response.text)
 
 
 def test_login_page_links_are_relative_and_resolve(client):
-    _assert_links_resolve(client, "/login", client.get("/login").text)
+    assert_links_resolve(client, "/login", client.get("/login").text)
 
 
 # A failed POST re-renders a page at the deeper POST URL (e.g. a list page at
@@ -105,4 +105,4 @@ def test_links_on_a_page_rendered_by_a_failed_post_still_resolve(
     response = admin.post(path, data={"title": "x", "slug": "x", "body_md": "x",
                                       "role": "editor", "csrf_token": "forged"})
     assert response.status_code == 403, path  # rejected, rendered as an error page
-    _assert_links_resolve(admin, path, response.text)
+    assert_links_resolve(admin, path, response.text)

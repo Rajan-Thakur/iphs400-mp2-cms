@@ -49,7 +49,7 @@ def test_editor_cannot_publish_and_gets_a_specific_reason(client_as):
     csrf = extract_csrf(editor.get("/admin/posts").text)
     response = editor.post(f"/admin/posts/{post_id}/publish", data={"csrf_token": csrf})
     assert response.status_code == 403
-    assert "admin" in response.json()["detail"].lower()
+    assert "Only an Admin can publish" in response.text
     assert content_module.get_content(post_id, "post")["status"] == "draft"
 
 
@@ -63,7 +63,7 @@ def test_editor_cannot_unpublish_and_gets_a_specific_reason(client_as):
     csrf = extract_csrf(editor.get("/admin/posts").text)
     response = editor.post(f"/admin/posts/{post_id}/unpublish", data={"csrf_token": csrf})
     assert response.status_code == 403
-    assert "admin" in response.json()["detail"].lower()
+    assert "Only an Admin can publish" in response.text
     assert content_module.get_content(post_id, "post")["status"] == "published"
 
 

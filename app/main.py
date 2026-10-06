@@ -9,7 +9,7 @@ from __future__ import annotations
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 
-from app.guards import NeedsLogin
+from app.guards import AccessDenied, NeedsLogin, render_access_denied
 from app.routes import auth, dashboard, pages, posts, public, users
 
 
@@ -25,6 +25,8 @@ def create_app() -> FastAPI:
     @app.exception_handler(NeedsLogin)
     def _redirect_to_login(request: Request, exc: NeedsLogin):
         return RedirectResponse("/login", status_code=303)
+
+    app.add_exception_handler(AccessDenied, render_access_denied)
 
     return app
 

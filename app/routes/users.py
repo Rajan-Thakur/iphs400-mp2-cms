@@ -1,6 +1,7 @@
 """Admin-only user management: create an account, change a role, deactivate
-(ticket T06). Reuses T02's require_admin guard — an Editor gets a plain 403
-on every route here.
+(ticket T06). Every route uses T02's require_admin guard with a specific
+reason, so an Editor gets the "Access denied" page (403) explaining that only
+an Admin can manage users.
 """
 from __future__ import annotations
 
@@ -54,18 +55,23 @@ def _csrf_error_new_form(request, user, *, form_email, form_role):
     )
 
 
+def _require_admin_for_users(request: Request) -> sqlite3.Row:
+    return require_admin(request, detail="Only an Admin can manage users — "
+                                         "ask an Admin if an account needs changing.")
+
+
 def _validate_role(role: str) -> str | None:
     """Return an error message if `role` isn't valid, else None."""
     return None if role in users_module.ROLES else "Role must be admin or editor."
 
 
 @router.get("")
-def list_users_route(request: Request, user=Depends(require_admin)):
+def list_users_route(request: Request, user=Depends(_require_admin_for_users)):
     return _render_list(request, user, saved=request.query_params.get("saved"))
 
 
 @router.get("/new")
-def new_user_form(request: Request, user=Depends(require_admin)):
+def new_user_form(request: Request, user=Depends(_require_admin_for_users)):
     return _render_new_form(request, user)
 
 
@@ -76,7 +82,7 @@ def create_user_route(
     password: str = Form(...),
     role: str = Form(...),
     csrf_token: str = Form(...),
-    user=Depends(require_admin),
+    user=Depends(_require_admin_for_users),
 ):
     if not security.verify_csrf(csrf_token, request.cookies.get(security.CSRF_COOKIE)):
         return _csrf_error_new_form(request, user, form_email=email, form_role=role)
@@ -107,7 +113,7 @@ def change_role(
     user_id: int,
     role: str = Form(...),
     csrf_token: str = Form(...),
-    user=Depends(require_admin),
+    user=Depends(_require_admin_for_users),
 ):
     if not security.verify_csrf(csrf_token, request.cookies.get(security.CSRF_COOKIE)):
         return _csrf_error_list(request, user)
@@ -131,7 +137,7 @@ def deactivate_user_route(
     request: Request,
     user_id: int,
     csrf_token: str = Form(...),
-    user=Depends(require_admin),
+    user=Depends(_require_admin_for_users),
 ):
     if not security.verify_csrf(csrf_token, request.cookies.get(security.CSRF_COOKIE)):
         return _csrf_error_list(request, user)
