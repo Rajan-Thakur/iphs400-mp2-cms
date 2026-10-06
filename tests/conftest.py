@@ -10,6 +10,9 @@ so access-control tests stay one line:
 from __future__ import annotations
 
 import re
+import socket
+import threading
+import time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -72,3 +75,66 @@ def client_as():
         return c
 
     return _login
+
+
+# --- Browser tests -----------------------------------------------------------
+# Layout (does a page fit a 390px phone?) and in-page JavaScript can only be
+# checked in a real browser. These fixtures run the app on a local port and
+# drive it with Playwright; when Chromium isn't installed
+# (`uv run playwright install chromium`), every browser test is skipped.
+
+PHONE_VIEWPORT = {"width": 390, "height": 844}
+
+
+@pytest.fixture(scope="session")
+def live_server():
+    """The app on a free localhost port. Tests still get their own database:
+    the app reads settings.DATABASE_PATH per request, and the autouse fixture
+    above repoints it for every test."""
+    import uvicorn
+
+    sock = socket.socket()
+    sock.bind(("127.0.0.1", 0))
+    port = sock.getsockname()[1]
+    server = uvicorn.Server(uvicorn.Config(create_app(), log_level="warning"))
+    thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+    thread.start()
+    deadline = time.monotonic() + 10
+    while not server.started:
+        assert time.monotonic() < deadline, "test server did not start"
+        time.sleep(0.05)
+    yield f"http://127.0.0.1:{port}"
+    server.should_exit = True
+    thread.join(timeout=5)
+    sock.close()
+
+
+@pytest.fixture(scope="session")
+def browser():
+    sync_api = pytest.importorskip("playwright.sync_api")
+    with sync_api.sync_playwright() as playwright:
+        try:
+            chromium = playwright.chromium.launch()
+        except Exception as exc:  # browser binaries not installed
+            pytest.skip(f"Chromium unavailable ({exc.__class__.__name__}); "
+                        "run `uv run playwright install chromium`")
+        yield chromium
+        chromium.close()
+
+
+@pytest.fixture
+def phone(browser, live_server):
+    """A fresh 390px-wide browser tab (no cookies) aimed at the test server."""
+    context = browser.new_context(viewport=PHONE_VIEWPORT, base_url=live_server)
+    yield context.new_page()
+    context.close()
+
+
+def log_in(page, role: str) -> None:
+    """Log in through the real login form, as a person would."""
+    user = DEMO_USERS[role]
+    page.goto("/login")
+    page.fill("input[name=email]", user["email"])
+    page.fill("input[name=password]", user["password"])
+    page.click("button[type=submit]")
+    page.wait_for_url("**/admin")

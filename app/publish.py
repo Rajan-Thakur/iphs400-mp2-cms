@@ -21,7 +21,12 @@ from app.mdrender import render_markdown
 CSS = """/* Minimal starter styles — make them yours. */
 :root { color-scheme: light dark; }
 * { box-sizing: border-box; }
-body { font: 16px/1.6 system-ui, sans-serif; margin: 0 auto; max-width: 42rem; padding: 1rem; }
+body { font: 16px/1.6 system-ui, sans-serif; margin: 0 auto; max-width: 42rem; padding: 1rem;
+  overflow-wrap: anywhere; }
+/* Wide Markdown (code, tables, images) scrolls inside itself, not the page. */
+pre, table { display: block; max-width: 100%; overflow-x: auto; }
+td, th { overflow-wrap: normal; }
+img { max-width: 100%; height: auto; }
 header a { font-weight: 700; text-decoration: none; }
 main { margin-block: 2rem; }
 input, button, select, textarea { max-width: 100%; font: inherit; }
