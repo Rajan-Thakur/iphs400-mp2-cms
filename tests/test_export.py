@@ -96,6 +96,19 @@ def test_exported_markdown_is_rendered_and_sanitized(tmp_path):
     assert "onerror" not in html
 
 
+def test_exported_page_markdown_is_also_sanitized(tmp_path):
+    # T09: re-verify sanitization on the Page export path too, not just Posts
+    # (#4 only ever tested the admin preview; #7/#8 added the export itself).
+    _seed("page", "Dangerous Page", "dangerous-page",
+          "# Hi\n\n<script>alert(1)</script><img src=x onerror=alert(1)>", "published")
+
+    out = render_site(tmp_path / "site")
+    html = (out / "dangerous-page.html").read_text()
+    assert "<h1>Hi</h1>" in html
+    assert "<script" not in html
+    assert "onerror" not in html
+
+
 def test_post_and_page_header_shows_site_title_not_the_items_own_title(tmp_path):
     from app import settings
 
