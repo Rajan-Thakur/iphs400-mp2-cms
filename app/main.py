@@ -15,8 +15,8 @@ from fastapi.templating import Jinja2Templates
 
 from app import security, settings
 from app.guards import NeedsLogin, require_editor_or_admin
-from app.publish import CSS
-from app.routes import auth, posts
+from app.publish import CSS, nav_items
+from app.routes import auth, pages, posts
 
 templates = Jinja2Templates(directory=str(settings.TEMPLATES))
 
@@ -25,6 +25,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="IPHS 400 MP2 CMS")
     app.include_router(auth.router)
     app.include_router(posts.router)
+    app.include_router(pages.router)
 
     @app.exception_handler(NeedsLogin)
     def _redirect_to_login(request: Request, exc: NeedsLogin):
@@ -41,7 +42,7 @@ def create_app() -> FastAPI:
     def public_home(request: Request):
         return templates.TemplateResponse(
             request, "public/home.html",
-            {"title": settings.SITE_TITLE, "items": []},
+            {"title": settings.SITE_TITLE, "items": [], "nav_items": nav_items()},
         )
 
     @app.get("/style.css")

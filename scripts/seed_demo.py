@@ -19,7 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app import settings  # noqa: E402
-from app.seed import seed_posts, seed_users  # noqa: E402
+from app.seed import seed_pages, seed_posts, seed_users  # noqa: E402
 
 
 def main() -> int:
@@ -32,7 +32,9 @@ def main() -> int:
 
     seed_users(settings.DATABASE_PATH, admin_pw, editor_pw)
     seed_posts(settings.DATABASE_PATH)
-    print(f"Seeded admin/editor users and an example post into {settings.DATABASE_PATH}.")
+    seed_pages(settings.DATABASE_PATH)
+    print(f"Seeded admin/editor users, an example post, and an example page "
+          f"into {settings.DATABASE_PATH}.")
     return 0
 
 

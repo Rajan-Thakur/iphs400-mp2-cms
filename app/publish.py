@@ -14,6 +14,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from app import content as content_module
 from app import settings
 
 CSS = """/* Minimal starter styles — make them yours. */
@@ -29,12 +30,13 @@ form.admin-nav__logout { display: inline; }
 .error { color: #b00020; }
 .success { color: #146c2e; }
 textarea { width: 100%; }
-.post-form label { display: block; margin-block: 0.75rem; }
-.post-list { list-style: none; padding: 0; }
-.post-list__item { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+.content-form label { display: block; margin-block: 0.75rem; }
+.content-list { list-style: none; padding: 0; }
+.content-list__item { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
   padding-block: 0.5rem; border-bottom: 1px solid currentColor; }
-.post-list__delete, .post-list__publish { display: inline; }
-.post-preview__body { border: 1px solid currentColor; padding: 0.5rem; overflow-wrap: anywhere; }
+.content-list__delete, .content-list__publish { display: inline; }
+.content-preview__body { border: 1px solid currentColor; padding: 0.5rem; overflow-wrap: anywhere; }
+.site-nav { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 """
 
 
@@ -43,6 +45,14 @@ def environment() -> Environment:
         loader=FileSystemLoader(str(settings.TEMPLATES)),
         autoescape=select_autoescape(["html"]),
     )
+
+
+def nav_items() -> list[dict[str, str]]:
+    """Published Pages, as relative (title, href) links for the public
+    site's nav. The linked file itself is written by the full export
+    (T07) — a draft Page never appears here."""
+    pages = content_module.list_published("page")
+    return [{"title": page["title"], "href": f"{page['slug']}.html"} for page in pages]
 
 
 def render_site(out: Path | None = None) -> Path:
@@ -55,7 +65,7 @@ def render_site(out: Path | None = None) -> Path:
     (out / "index.html").write_text(
         env.get_template("public/home.html").render(
             title=settings.SITE_TITLE, items=[], css_path="style.css",
-            home_path="index.html",
+            home_path="index.html", nav_items=nav_items(),
         )
     )
     return out

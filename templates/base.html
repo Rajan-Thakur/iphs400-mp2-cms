@@ -7,7 +7,14 @@
   <link rel="stylesheet" href="{{ css_path | default('style.css') }}">
 </head>
 <body>
-  <header><a href="{{ home_path | default('index.html') }}">{{ title }}</a></header>
+  <header>
+    <a href="{{ home_path | default('index.html') }}">{{ title }}</a>
+    {% if nav_items %}
+      <nav class="site-nav">
+        {% for item in nav_items %}<a href="{{ item.href }}">{{ item.title }}</a>{% endfor %}
+      </nav>
+    {% endif %}
+  </header>
   <main>{% block content %}{% endblock %}</main>
   <footer><small>IPHS 400 Mini-Project #2</small></footer>
 </body>

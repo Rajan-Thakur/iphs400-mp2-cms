@@ -38,6 +38,17 @@ def list_content(kind: str) -> list[sqlite3.Row]:
         conn.close()
 
 
+def list_published(kind: str) -> list[sqlite3.Row]:
+    conn = db_module.connect()
+    try:
+        return conn.execute(
+            "SELECT * FROM content WHERE kind = ? AND status = ? ORDER BY created_at DESC",
+            (kind, STATUS_PUBLISHED),
+        ).fetchall()
+    finally:
+        conn.close()
+
+
 def get_content(content_id: int, kind: str) -> sqlite3.Row | None:
     conn = db_module.connect()
     try:

@@ -29,21 +29,40 @@ def seed_users(db_path: Path, admin_password: str, editor_password: str) -> None
         conn.close()
 
 
-def seed_posts(db_path: Path) -> None:
-    """Seed one example Post, authored by the demo editor, so a fresh clone
-    has something to look at without hand-creating content first."""
+def _seed_content(
+    db_path: Path, *, kind: str, title: str, slug: str, body_md: str,
+    status: str, author_email: str,
+) -> None:
     conn = db_module.connect(db_path)
     try:
         author = conn.execute(
-            "SELECT id FROM users WHERE email = ?", (DEMO_EMAILS["editor"],)
+            "SELECT id FROM users WHERE email = ?", (author_email,)
         ).fetchone()
         conn.execute(
             "INSERT OR IGNORE INTO content (kind, title, slug, body_md, status, author_id) "
-            "VALUES ('post', ?, ?, ?, 'draft', ?)",
-            ("Welcome", "welcome",
-             "# Welcome\n\nThis is an example post seeded for demo purposes.",
-             author["id"]),
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (kind, title, slug, body_md, status, author["id"]),
         )
         conn.commit()
     finally:
         conn.close()
+
+
+def seed_posts(db_path: Path) -> None:
+    """Seed one example Post, authored by the demo editor, so a fresh clone
+    has something to look at without hand-creating content first."""
+    _seed_content(
+        db_path, kind="post", title="Welcome", slug="welcome",
+        body_md="# Welcome\n\nThis is an example post seeded for demo purposes.",
+        status="draft", author_email=DEMO_EMAILS["editor"],
+    )
+
+
+def seed_pages(db_path: Path) -> None:
+    """Seed one example Page, published so the public site's nav shows
+    something immediately after a fresh seed."""
+    _seed_content(
+        db_path, kind="page", title="About", slug="about",
+        body_md="# About\n\nThis is an example page seeded for demo purposes.",
+        status="published", author_email=DEMO_EMAILS["admin"],
+    )
