@@ -8,7 +8,7 @@
 </head>
 <body>
   <header>
-    <a href="{{ home_path | default('index.html') }}">{{ title }}</a>
+    <a href="{{ home_path | default('index.html') }}">{{ site_title | default(title) }}</a>
     {% if nav_items %}
       <nav class="site-nav">
         {% for item in nav_items %}<a href="{{ item.href }}">{{ item.title }}</a>{% endfor %}

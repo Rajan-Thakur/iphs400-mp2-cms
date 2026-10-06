@@ -16,6 +16,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app import content as content_module
 from app import settings
+from app.mdrender import render_markdown
 
 CSS = """/* Minimal starter styles — make them yours. */
 :root { color-scheme: light dark; }
@@ -47,12 +48,35 @@ def environment() -> Environment:
     )
 
 
-def nav_items() -> list[dict[str, str]]:
+def nav_items(prefix: str = "") -> list[dict[str, str]]:
     """Published Pages, as relative (title, href) links for the public
-    site's nav. The linked file itself is written by the full export
-    (T07) — a draft Page never appears here."""
+    site's nav. `prefix` relocates the link for a page nested one
+    directory deep (e.g. "../" from site/posts/*.html) — a draft Page
+    never appears here."""
     pages = content_module.list_published("page")
-    return [{"title": page["title"], "href": f"{page['slug']}.html"} for page in pages]
+    return [{"title": page["title"], "href": f"{prefix}{page['slug']}.html"} for page in pages]
+
+
+def _feed_items(posts: list) -> list[dict[str, str]]:
+    return [{"title": post["title"], "href": f"posts/{post['slug']}.html"} for post in posts]
+
+
+def _write_detail_pages(
+    env: Environment, out_dir: Path, *, template_name: str, items: list, item_key: str,
+    prefix: str, css_path: str, home_path: str,
+) -> None:
+    """Write one file per item using its detail template (public/post.html
+    or public/page.html) — the two loops render_site() needs are identical
+    apart from which key the item is passed under and the relative depth."""
+    template = env.get_template(template_name)
+    for item in items:
+        (out_dir / f"{item['slug']}.html").write_text(
+            template.render(
+                title=item["title"], site_title=settings.SITE_TITLE,
+                **{item_key: item}, body_html=render_markdown(item["body_md"]),
+                css_path=css_path, home_path=home_path, nav_items=nav_items(prefix=prefix),
+            )
+        )
 
 
 def render_site(out: Path | None = None) -> Path:
@@ -62,10 +86,26 @@ def render_site(out: Path | None = None) -> Path:
     out.mkdir(parents=True)
     env = environment()
     (out / "style.css").write_text(CSS)
+
+    posts = content_module.list_published("post")
+    pages = content_module.list_published("page")
+
     (out / "index.html").write_text(
         env.get_template("public/home.html").render(
-            title=settings.SITE_TITLE, items=[], css_path="style.css",
-            home_path="index.html", nav_items=nav_items(),
+            title=settings.SITE_TITLE, items=_feed_items(posts),
+            css_path="style.css", home_path="index.html", nav_items=nav_items(),
         )
     )
+
+    posts_dir = out / "posts"
+    posts_dir.mkdir()
+    _write_detail_pages(
+        env, posts_dir, template_name="public/post.html", items=posts, item_key="post",
+        prefix="../", css_path="../style.css", home_path="../index.html",
+    )
+    _write_detail_pages(
+        env, out, template_name="public/page.html", items=pages, item_key="page",
+        prefix="", css_path="style.css", home_path="index.html",
+    )
+
     return out
