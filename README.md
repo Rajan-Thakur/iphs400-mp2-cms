@@ -17,10 +17,11 @@ cp .env.example .env
 uv run cms serve        # then open http://localhost:8000/admin  -> "T00: hello admin"
 ```
 
-## Run locally
+## Run locally (run playwright install only once)
 
 uv sync  
-cp .env.example .env   
+cp .env.example .env  
+uv run playwright install chromium
 uv run python scripts/seed_demo.py  
 uv run cms serve  
 uv run cms publish && uv run cms deploy  
@@ -50,7 +51,7 @@ Run `uv run python scripts/check_submission.py --stage 2` before you submit.
 
 This project has been created entirely using the Claude Code tool, specifically the Sonnet 5 model with Medium, High and Extra effort for thinking, and later Opus 5.5 High. Medium/High thinking effort was used from the start of the project up to the creation of the spec. Creating tickets and implementing them was all done using Sonnet 5 Extra effort. Then, at /code-review, I switched to the Opus 5.5 model with High thinking effort. Switching to have more capable models was a decision influenced by a discussion with Professor Chun that the token usage rates at Sonnet 5 Medium effort are very low, so bumping up the model's capability to be at High or Extra or just switching to Opus 5.5 High while compacting the context once it gets filled up to about 40% is only advantageous. Opus 5.5 High does burn tokens a lot, but it was essential in /code-review.
 
-The skills used for this project are the Matt Pocock skills /grill-with-docs, /to-spec, /to-tickets, /implement, /code-review, /tdd. The model followed these skills well at every thinking effort: it generated a spec and also handled a project trajectory pivot well when I presented it a pivot from the original idea that would align better with the rubric and the project's requirements.
+The skills used for this project are the Matt Pocock skills /grill-with-docs, /to-spec, /to-tickets, /implement, /tdd, /code-review. The model followed these skills well at every thinking effort: it generated a spec and also handled a project trajectory pivot well when I presented it a pivot from the original idea that would align better with the rubric and the project's requirements.
 
 One prompt I gave the model, answering its questions and clarifying my previous answers during the /grill-with-docs skill running: "Q1 - Sorry yes, use that template on the github repo. Use the git commands to get that template. Q2 - Yes, make it me and faculty advisor are admin and editor is for officers. Admin - editor permissions + publish/unpublish + manage users. Editor - edit and create content. Q3 - Outlined in Q2. Q4 - Advisor is Doctor Diane Kahle, use placeholders for student officer names for now. Look up CSHS details in upper arlington high school. GPA req is 3.5 or above. Q5 - Add posts, pages and events and roster. Events and roster will be extra credit. Posts - dated, feed-like, announcements, meetings, events, pages - about/eligibility, events, roster, join, eligibility."
 * Here I was answering its clarifying questions on how the project should look like. This is before pivoting from the idea of a client-specific CMS to a general CMS and a client-specific website built on top of it. The model correctly asked me about things that I was (intentionally) vague about, which allowed me to make things specific.
