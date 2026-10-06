@@ -5,8 +5,12 @@ door.
 """
 
 
-def test_admin_console_answers(client):
-    response = client.get("/admin")
+def test_admin_console_answers(client_as):
+    # T02 put /admin behind a login guard. The "front door" this test
+    # originally checked — that the admin console answers at all — now means
+    # a logged-in Editor or Admin reaching it, not an anonymous visitor
+    # (see tests/test_roles.py for the anonymous-gets-redirected case).
+    response = client_as("editor").get("/admin")
     assert response.status_code == 200
     assert "hello admin" in response.text.lower()
 
