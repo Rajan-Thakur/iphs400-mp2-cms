@@ -33,6 +33,10 @@ def bar(pct: float, width: int = 10) -> str:
 
 
 def main() -> None:
+    # The meter prints ▓ │ ⚠, which the Windows console code page (cp1252)
+    # can't encode — without this the status line crashes there.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     try:
         data = json.load(sys.stdin)
     except Exception:

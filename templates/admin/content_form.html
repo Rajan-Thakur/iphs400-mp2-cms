@@ -32,8 +32,16 @@
           var body = new URLSearchParams();
           body.set("body_md", textarea.value);
           fetch("{{ url_prefix }}/preview", { method: "POST", body: body })
-            .then(function (response) { return response.text(); })
-            .then(function (html) { preview.innerHTML = html; });
+            .then(function (response) {
+              // An expired session redirects to /login; don't paste that page in.
+              if (!response.ok || response.redirected) { throw new Error("preview failed"); }
+              return response.text();
+            })
+            .then(function (html) { preview.innerHTML = html; })
+            .catch(function () {
+              preview.textContent = "Preview unavailable — your session may have expired. " +
+                "Save your text elsewhere, reload the page, and log in again.";
+            });
         }, 300);
       });
     })();

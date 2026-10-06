@@ -49,11 +49,23 @@ def _seed_content(
 
 
 def seed_posts(db_path: Path) -> None:
-    """Seed one example Post, authored by the demo editor, so a fresh clone
-    has something to look at without hand-creating content first."""
+    """Seed one published and one draft Post, authored by the demo editor, so
+    a fresh clone has a feed to look at — and a draft that must never leave
+    the database."""
     _seed_content(
         db_path, kind="post", title="Welcome", slug="welcome",
-        body_md="# Welcome\n\nThis is an example post seeded for demo purposes.",
+        body_md=(
+            "# Welcome\n\nThis site is managed with a small, WordPress-style CMS: "
+            "Editors draft Posts and Pages in a local admin console, and an Admin "
+            "publishes them to this static site.\n\n"
+            "- Posts appear in the feed on the home page.\n"
+            "- Pages appear in the navigation.\n"
+        ),
+        status="published", author_email=DEMO_EMAILS["editor"],
+    )
+    _seed_content(
+        db_path, kind="post", title="Upcoming changes (draft)", slug="upcoming-changes",
+        body_md="Still being written — drafts stay in the admin console until published.",
         status="draft", author_email=DEMO_EMAILS["editor"],
     )
 

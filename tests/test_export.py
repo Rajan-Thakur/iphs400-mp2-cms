@@ -127,6 +127,29 @@ def test_post_and_page_header_shows_site_title_not_the_items_own_title(tmp_path)
     assert f'index.html">{settings.SITE_TITLE}</a>' in page_html
 
 
+def test_non_ascii_content_exports_as_utf8(tmp_path):
+    # T10: write_text used the platform default (cp1252 on Windows), which
+    # crashed on an emoji and mangled accented characters.
+    _seed("post", "Café 🎉", "cafe", "Ünïcödé body — with an em dash 🎉", "published")
+
+    out = render_site(tmp_path / "site")
+    html = (out / "posts" / "cafe.html").read_bytes().decode("utf-8")
+    assert "Café 🎉" in html
+    assert "Ünïcödé body — with an em dash 🎉" in html
+    (out / "style.css").read_bytes().decode("utf-8")  # the CSS has an em dash too
+
+
+def test_a_published_page_with_a_reserved_slug_never_overwrites_the_home_page(tmp_path):
+    # Simulates a row saved before the editor refused reserved slugs.
+    _seed("post", "Live Post", "live-post", "Body.", "published")
+    _seed("page", "Imposter Home", "index", "Body.", "published")
+
+    out = render_site(tmp_path / "site")
+    home = (out / "index.html").read_text(encoding="utf-8")
+    assert 'href="posts/live-post.html"' in home  # still the real home page
+    assert "Imposter Home" not in home  # and not linked from the nav either
+
+
 def test_running_publish_twice_reflects_current_content_not_stale_output(tmp_path):
     post_id = _seed("post", "Will Be Unpublished", "will-be-unpublished", "Body.", "published")
     site_dir = tmp_path / "site"

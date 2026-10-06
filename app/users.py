@@ -13,9 +13,14 @@ ROLES = {"admin", "editor"}
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
+def normalize_email(raw: str) -> str:
+    """Accounts are stored in this form, so every lookup must use it too."""
+    return raw.strip().lower()
+
+
 def validate_email(raw: str) -> str | None:
     """Normalize `raw` and return it if it looks like an email, else None."""
-    normalized = raw.strip().lower()
+    normalized = normalize_email(raw)
     return normalized if EMAIL_RE.match(normalized) else None
 
 

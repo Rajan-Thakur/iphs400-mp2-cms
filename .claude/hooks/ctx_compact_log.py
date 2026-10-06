@@ -23,14 +23,16 @@ HEADER = (
 
 def main() -> None:
     try:
-        event = json.load(sys.stdin)
+        # Claude Code sends UTF-8; reading bytes avoids Windows decoding the
+        # focus note with its console code page (cp1252) and mangling it.
+        event = json.load(sys.stdin.buffer)
     except Exception:
         return
     project = Path(os.environ.get("CLAUDE_PROJECT_DIR") or event.get("cwd") or os.getcwd())
     log = project / "docs" / "process" / "compaction-log.md"
     log.parent.mkdir(parents=True, exist_ok=True)
     if not log.exists():
-        log.write_text(HEADER)
+        log.write_text(HEADER, encoding="utf-8")
     note = (event.get("custom_instructions") or "").replace("|", "/").replace("\n", " ").strip()
     row = "| {} | {} | {} | {} |\n".format(
         datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M"),
@@ -38,7 +40,7 @@ def main() -> None:
         event.get("trigger", "unknown"),
         note or "(none)",
     )
-    with log.open("a") as f:
+    with log.open("a", encoding="utf-8") as f:
         f.write(row)
 
 

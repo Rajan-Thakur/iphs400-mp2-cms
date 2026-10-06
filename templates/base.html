@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ title }}{% endblock %}</title>
-  <link rel="stylesheet" href="{{ css_path | default('style.css') }}">
+  <link rel="stylesheet" href="{% block css_href %}{{ css_path | default('style.css') }}{% endblock %}">
 </head>
 <body>
   <header>
-    <a href="{{ home_path | default('index.html') }}">{{ site_title | default(title) }}</a>
+    {% block brand %}<a href="{{ home_path | default('index.html') }}">{{ site_title | default(title) }}</a>{% endblock %}
     {% if nav_items %}
       <nav class="site-nav">
         {% for item in nav_items %}<a href="{{ item.href }}">{{ item.title }}</a>{% endfor %}

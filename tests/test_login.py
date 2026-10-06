@@ -35,6 +35,19 @@ def test_wrong_password_is_refused_with_a_clear_message(client):
     assert "incorrect" in response.text.lower()
 
 
+def test_email_is_matched_regardless_of_case_and_whitespace(client):
+    # T10: accounts are stored lowercased, but login compared the raw input.
+    csrf = _login_csrf(client)
+    response = client.post(
+        "/login",
+        data={"email": "  Admin@Example.TEST ", "password": DEMO_USERS["admin"]["password"],
+              "csrf_token": csrf},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    assert response.headers["location"] == "/admin"
+
+
 def test_unknown_email_is_refused_the_same_way(client):
     csrf = _login_csrf(client)
     response = client.post(

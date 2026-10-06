@@ -14,6 +14,7 @@ from fastapi.templating import Jinja2Templates
 
 from app import db as db_module
 from app import security, settings
+from app import users as users_module
 
 templates = Jinja2Templates(directory=str(settings.TEMPLATES))
 router = APIRouter()
@@ -68,7 +69,7 @@ def login_submit(
     if not security.verify_csrf(csrf_token, request.cookies.get(security.CSRF_COOKIE)):
         return _render_login(request, error="Your session expired — please try again.", status_code=403)
 
-    row = _user_by_email(email)
+    row = _user_by_email(users_module.normalize_email(email))
     if row is None or not security.verify_password(password, row["password_hash"]):
         return _render_login(request, error="Incorrect email or password.", status_code=401)
     if not row["active"]:

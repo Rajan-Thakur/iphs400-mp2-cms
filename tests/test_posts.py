@@ -172,6 +172,16 @@ def test_preview_renders_markdown(client_as):
     assert "<h1>Hi</h1>" in response.text
 
 
+def test_admin_pages_link_the_stylesheet_from_the_server_root(client_as):
+    # T10: a relative "style.css" on /admin/posts/new resolved to
+    # /admin/posts/style.css (404), so nested admin screens had no CSS.
+    editor = client_as("editor")
+    for path in ("/admin", "/admin/posts/new", "/admin/content"):
+        html = editor.get(path).text
+        assert 'href="/style.css"' in html, path
+    assert editor.get("/style.css").status_code == 200
+
+
 def test_anonymous_is_redirected_from_posts_list(client):
     response = client.get("/admin/posts", follow_redirects=False)
     assert response.status_code == 303

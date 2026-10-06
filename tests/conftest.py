@@ -40,6 +40,9 @@ def _isolated_seeded_db(monkeypatch, tmp_path):
     see state left over from another test."""
     db_path = tmp_path / "test.db"
     monkeypatch.setattr(settings, "DATABASE_PATH", db_path)
+    # settings also reads the developer's own .env; pin the one value tests
+    # render, so a title like "Jo's CMS" can't change test outcomes.
+    monkeypatch.setattr(settings, "SITE_TITLE", "Test CMS")
     seed_users(db_path, DEMO_USERS["admin"]["password"], DEMO_USERS["editor"]["password"])
     yield db_path
 

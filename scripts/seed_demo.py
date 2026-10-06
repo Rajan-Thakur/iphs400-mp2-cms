@@ -33,8 +33,8 @@ def main() -> int:
     seed_users(settings.DATABASE_PATH, admin_pw, editor_pw)
     seed_posts(settings.DATABASE_PATH)
     seed_pages(settings.DATABASE_PATH)
-    print(f"Seeded admin/editor users, an example post, and an example page "
-          f"into {settings.DATABASE_PATH}.")
+    print(f"Seeded admin/editor users, example posts (one published, one draft), "
+          f"and an example page into {settings.DATABASE_PATH}.")
     return 0
 
 

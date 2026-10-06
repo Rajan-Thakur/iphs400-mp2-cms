@@ -14,6 +14,15 @@ SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 STATUS_DRAFT = "draft"
 STATUS_PUBLISHED = "published"
 
+# A Page is exported to site/<slug>.html, so these slugs would overwrite a
+# file the export itself writes. Maps kind -> {slug: what it would clobber}.
+RESERVED_SLUGS = {"page": {"index": "the site's home page"}}
+
+
+def reserved_slug_reason(kind: str, slug: str) -> str | None:
+    """What `slug` is reserved for within `kind`, or None if it's free."""
+    return RESERVED_SLUGS.get(kind, {}).get(slug)
+
 
 def normalize_slug(raw: str) -> str:
     return raw.strip().lower()
@@ -82,6 +91,17 @@ def list_filtered(*, status: str | None = None, kind: str | None = None) -> list
     conn = db_module.connect()
     try:
         return conn.execute(query, params).fetchall()
+    finally:
+        conn.close()
+
+
+def get_published_by_slug(kind: str, slug: str) -> sqlite3.Row | None:
+    conn = db_module.connect()
+    try:
+        return conn.execute(
+            "SELECT * FROM content WHERE kind = ? AND slug = ? AND status = ?",
+            (kind, slug, STATUS_PUBLISHED),
+        ).fetchone()
     finally:
         conn.close()
 

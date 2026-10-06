@@ -55,30 +55,52 @@ def nav_items(prefix: str = "") -> list[dict[str, str]]:
     site's nav. `prefix` relocates the link for a page nested one
     directory deep (e.g. "../" from site/posts/*.html) — a draft Page
     never appears here."""
-    pages = content_module.list_published("page")
-    return [{"title": page["title"], "href": f"{prefix}{page['slug']}.html"} for page in pages]
+    return [{"title": page["title"], "href": f"{prefix}{page['slug']}.html"}
+            for page in _exportable_pages()]
 
 
-def _feed_items(posts: list) -> list[dict[str, str]]:
-    return [{"title": post["title"], "href": f"posts/{post['slug']}.html"} for post in posts]
+def _exportable_pages() -> list:
+    # The editor already refuses reserved slugs; this also covers rows saved
+    # before that check existed, so a Page can never overwrite site/index.html.
+    return [page for page in content_module.list_published("page")
+            if not content_module.reserved_slug_reason("page", page["slug"])]
 
 
-def _write_detail_pages(
-    env: Environment, out_dir: Path, *, template_name: str, items: list, item_key: str,
-    prefix: str, css_path: str, home_path: str,
-) -> None:
-    """Write one file per item using its detail template (public/post.html
-    or public/page.html) — the two loops render_site() needs are identical
-    apart from which key the item is passed under and the relative depth."""
-    template = env.get_template(template_name)
-    for item in items:
-        (out_dir / f"{item['slug']}.html").write_text(
-            template.render(
-                title=item["title"], site_title=settings.SITE_TITLE,
-                **{item_key: item}, body_html=render_markdown(item["body_md"]),
-                css_path=css_path, home_path=home_path, nav_items=nav_items(prefix=prefix),
-            )
-        )
+def home_html() -> str:
+    """The home page (feed of published Posts), as written to site/index.html."""
+    posts = content_module.list_published("post")
+    return environment().get_template("public/home.html").render(
+        title=settings.SITE_TITLE, items=[
+            {"title": post["title"], "href": f"posts/{post['slug']}.html"} for post in posts
+        ],
+        css_path="style.css", home_path="index.html", nav_items=nav_items(),
+    )
+
+
+def post_html(post) -> str:
+    """A published Post, as written to site/posts/<slug>.html — one directory
+    deep, so every shared link climbs a level."""
+    return _detail_html("public/post.html", "post", post, prefix="../")
+
+
+def page_html(page) -> str:
+    """A published Page, as written to site/<slug>.html."""
+    return _detail_html("public/page.html", "page", page, prefix="")
+
+
+def _detail_html(template_name: str, item_key: str, item, *, prefix: str) -> str:
+    return environment().get_template(template_name).render(
+        title=item["title"], site_title=settings.SITE_TITLE,
+        **{item_key: item}, body_html=render_markdown(item["body_md"]),
+        css_path=f"{prefix}style.css", home_path=f"{prefix}index.html",
+        nav_items=nav_items(prefix=prefix),
+    )
+
+
+def _write(path: Path, text: str) -> None:
+    # Explicit UTF-8: the pages declare <meta charset="utf-8">, and the
+    # platform default (cp1252 on Windows) can't encode an emoji at all.
+    path.write_text(text, encoding="utf-8")
 
 
 def render_site(out: Path | None = None) -> Path:
@@ -86,28 +108,14 @@ def render_site(out: Path | None = None) -> Path:
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
-    env = environment()
-    (out / "style.css").write_text(CSS)
-
-    posts = content_module.list_published("post")
-    pages = content_module.list_published("page")
-
-    (out / "index.html").write_text(
-        env.get_template("public/home.html").render(
-            title=settings.SITE_TITLE, items=_feed_items(posts),
-            css_path="style.css", home_path="index.html", nav_items=nav_items(),
-        )
-    )
+    _write(out / "style.css", CSS)
+    _write(out / "index.html", home_html())
 
     posts_dir = out / "posts"
     posts_dir.mkdir()
-    _write_detail_pages(
-        env, posts_dir, template_name="public/post.html", items=posts, item_key="post",
-        prefix="../", css_path="../style.css", home_path="../index.html",
-    )
-    _write_detail_pages(
-        env, out, template_name="public/page.html", items=pages, item_key="page",
-        prefix="", css_path="style.css", home_path="index.html",
-    )
+    for post in content_module.list_published("post"):
+        _write(posts_dir / f"{post['slug']}.html", post_html(post))
+    for page in _exportable_pages():
+        _write(out / f"{page['slug']}.html", page_html(page))
 
     return out

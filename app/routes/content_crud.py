@@ -81,6 +81,12 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
                 request, user, item=item, title=title, slug=slug, body_md=body_md,
                 error="Slug must be lowercase letters, numbers, and hyphens only.",
             )
+        reserved_for = content_module.reserved_slug_reason(kind, normalized_slug)
+        if reserved_for:
+            return _render_form(
+                request, user, item=item, title=title, slug=slug, body_md=body_md,
+                error=f'"{normalized_slug}" is reserved for {reserved_for} — choose another slug.',
+            )
         try:
             if item is None:
                 content_module.create_content(kind, title, normalized_slug, body_md, user["id"])

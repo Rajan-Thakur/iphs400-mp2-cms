@@ -96,6 +96,45 @@ def test_page_crud_rejects_wrong_csrf(client_as):
     assert content_module.list_content("page") == []
 
 
+def test_page_slug_reserved_by_the_export_is_rejected(client_as):
+    # T10: a Page is exported to site/<slug>.html, so slug "index" would
+    # overwrite the home page.
+    editor = client_as("editor")
+    response = editor.post(
+        "/admin/pages/new",
+        data={"title": "Home?", "slug": "Index", "body_md": "x", "csrf_token": _csrf_from(editor)},
+    )
+    assert response.status_code == 200
+    assert "reserved" in response.text.lower()
+    assert content_module.list_content("page") == []
+
+
+def test_editing_a_page_to_a_reserved_slug_is_rejected(client_as):
+    editor = client_as("editor")
+    editor.post("/admin/pages/new",
+                data={"title": "About", "slug": "about", "body_md": "x", "csrf_token": _csrf_from(editor)})
+    page_id = content_module.list_content("page")[0]["id"]
+
+    csrf = extract_csrf(editor.get(f"/admin/pages/{page_id}/edit").text)
+    response = editor.post(f"/admin/pages/{page_id}/edit",
+                           data={"title": "About", "slug": "index", "body_md": "x", "csrf_token": csrf})
+    assert response.status_code == 200
+    assert "reserved" in response.text.lower()
+    assert content_module.get_content(page_id, "page")["slug"] == "about"
+
+
+def test_post_slug_index_is_still_allowed(client_as):
+    # Posts export under posts/, so "index" collides with nothing there.
+    editor = client_as("editor")
+    response = editor.post(
+        "/admin/posts/new",
+        data={"title": "Index", "slug": "index", "body_md": "x",
+              "csrf_token": extract_csrf(editor.get("/admin/posts/new").text)},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+
+
 def test_page_preview_sanitizes_script(client_as):
     editor = client_as("editor")
     response = editor.post(
