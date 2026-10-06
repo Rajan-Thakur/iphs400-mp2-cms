@@ -11,6 +11,9 @@ from app import db as db_module
 
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
+STATUS_DRAFT = "draft"
+STATUS_PUBLISHED = "published"
+
 
 def normalize_slug(raw: str) -> str:
     return raw.strip().lower()
@@ -66,6 +69,19 @@ def update_content(content_id: int, kind: str, title: str, slug: str, body_md: s
             "UPDATE content SET title = ?, slug = ?, body_md = ?, "
             "updated_at = datetime('now') WHERE id = ? AND kind = ?",
             (title, slug, body_md, content_id, kind),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def set_status(content_id: int, kind: str, status: str) -> None:
+    conn = db_module.connect()
+    try:
+        conn.execute(
+            "UPDATE content SET status = ?, updated_at = datetime('now') "
+            "WHERE id = ? AND kind = ?",
+            (status, content_id, kind),
         )
         conn.commit()
     finally:

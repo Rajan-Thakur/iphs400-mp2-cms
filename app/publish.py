@@ -33,7 +33,7 @@ textarea { width: 100%; }
 .post-list { list-style: none; padding: 0; }
 .post-list__item { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
   padding-block: 0.5rem; border-bottom: 1px solid currentColor; }
-.post-list__delete { display: inline; }
+.post-list__delete, .post-list__publish { display: inline; }
 .post-preview__body { border: 1px solid currentColor; padding: 0.5rem; overflow-wrap: anywhere; }
 """
 

@@ -15,7 +15,7 @@ from fastapi.templating import Jinja2Templates
 
 from app import content as content_module
 from app import security, settings
-from app.guards import require_editor_or_admin
+from app.guards import require_admin, require_editor_or_admin
 from app.mdrender import render_markdown
 
 templates = Jinja2Templates(directory=str(settings.TEMPLATES))
@@ -57,7 +57,8 @@ def _render_post_list(request, user, *, saved=None, error=None, status_code=200)
     response = templates.TemplateResponse(
         request, "admin/post_list.html",
         {"title": "Posts", "current_user": user, "posts": posts,
-         "csrf_token": csrf_token, "saved": saved, "error": error},
+         "csrf_token": csrf_token, "saved": saved, "error": error,
+         "is_admin": user["role"] == "admin"},
         status_code=status_code,
     )
     return security.set_csrf_cookie(response, new_cookie)
@@ -154,6 +155,47 @@ def delete_post(
         )
     content_module.delete_content(post_id, KIND)
     return RedirectResponse("/admin/posts?saved=deleted", status_code=303)
+
+
+PUBLISH_DETAIL = "Only an Admin can publish or unpublish a Post — ask an Admin to do this for you."
+
+
+def _require_admin_to_publish(request: Request):
+    return require_admin(request, detail=PUBLISH_DETAIL)
+
+
+def _apply_status_change(request, user, post_id, *, new_status, saved_as, csrf_token):
+    if not security.verify_csrf(csrf_token, request.cookies.get(security.CSRF_COOKIE)):
+        return _render_post_list(
+            request, user, error="Your session expired — please try again.", status_code=403,
+        )
+    post = content_module.get_content(post_id, KIND)
+    if post is None:
+        return RedirectResponse("/admin/posts", status_code=303)
+    content_module.set_status(post_id, KIND, new_status)
+    return RedirectResponse(f"/admin/posts?saved={saved_as}", status_code=303)
+
+
+@router.post("/{post_id}/publish")
+def publish_post(
+    request: Request, post_id: int, csrf_token: str = Form(...),
+    user=Depends(_require_admin_to_publish),
+):
+    return _apply_status_change(
+        request, user, post_id, new_status=content_module.STATUS_PUBLISHED,
+        saved_as="published", csrf_token=csrf_token,
+    )
+
+
+@router.post("/{post_id}/unpublish")
+def unpublish_post(
+    request: Request, post_id: int, csrf_token: str = Form(...),
+    user=Depends(_require_admin_to_publish),
+):
+    return _apply_status_change(
+        request, user, post_id, new_status=content_module.STATUS_DRAFT,
+        saved_as="unpublished", csrf_token=csrf_token,
+    )
 
 
 @router.post("/preview")
