@@ -12,9 +12,9 @@ from the manual's default:
 | Stage | Model | Effort | Estimate (% of a 5-hour window) |
 |---|---|---|---|
 | `/research`, quick lookups | Sonnet 5 | low | ~2% |
-| `/grill-with-docs`, `/to-spec`, `/to-tickets` | Sonnet 5 | high/xhigh | ~20% (already spent — see `notes/usage-ledger.csv`) |
-| `/implement` + `/tdd` (per ticket) | Sonnet 5 | medium | ~8% each |
-| `/code-review` (per ticket) | Sonnet 5 | high | ~3% each |
+| `/grill-with-docs`, `/to-spec`, `/to-tickets` | Sonnet 5 | medium | ~20% (already spent — see `notes/usage-ledger.csv`) |
+| `/implement` + `/tdd` (per ticket) | Sonnet 5 | xhigh | ~8% each |
+| `/code-review` (per ticket) | Opus 5.5 | high | ~3% each |
 
 ## Estimate
 
