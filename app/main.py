@@ -16,7 +16,7 @@ from fastapi.templating import Jinja2Templates
 from app import security, settings
 from app.guards import NeedsLogin, require_editor_or_admin
 from app.publish import CSS
-from app.routes import auth
+from app.routes import auth, posts
 
 templates = Jinja2Templates(directory=str(settings.TEMPLATES))
 
@@ -24,6 +24,7 @@ templates = Jinja2Templates(directory=str(settings.TEMPLATES))
 def create_app() -> FastAPI:
     app = FastAPI(title="IPHS 400 MP2 CMS")
     app.include_router(auth.router)
+    app.include_router(posts.router)
 
     @app.exception_handler(NeedsLogin)
     def _redirect_to_login(request: Request, exc: NeedsLogin):
@@ -34,9 +35,7 @@ def create_app() -> FastAPI:
         csrf_token, new_cookie = security.read_or_mint_csrf(request)
         context = {"title": "Admin", "current_user": user, "csrf_token": csrf_token}
         response = templates.TemplateResponse(request, "admin/hello.html", context)
-        if new_cookie is not None:
-            response.set_cookie(security.CSRF_COOKIE, new_cookie, httponly=True, samesite="lax")
-        return response
+        return security.set_csrf_cookie(response, new_cookie)
 
     @app.get("/")
     def public_home(request: Request):
@@ -49,9 +48,6 @@ def create_app() -> FastAPI:
     def style_css():
         return Response(CSS, media_type="text/css")
 
-    # Your ticket work plugs in here, e.g.
-    #   from app.routes import posts
-    #   app.include_router(posts.router)
     return app
 
 

@@ -68,6 +68,14 @@ def verify_csrf(form_token: str | None, signed_cookie: str | None) -> bool:
     return hmac.compare_digest(raw, form_token)
 
 
+def set_csrf_cookie(response, new_cookie: str | None):
+    """Set the CSRF cookie on `response` if read_or_mint_csrf minted a new
+    one (it returns None when the request's existing cookie was reused)."""
+    if new_cookie is not None:
+        response.set_cookie(CSRF_COOKIE, new_cookie, httponly=True, samesite="lax")
+    return response
+
+
 def read_or_mint_csrf(request) -> tuple[str, str | None]:
     """Reuse the request's existing valid CSRF cookie if it has one, so a
     second page load doesn't invalidate a token already embedded in a page

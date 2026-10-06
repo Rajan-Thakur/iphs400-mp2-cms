@@ -26,9 +26,7 @@ def _render_login(request: Request, error: str | None, status_code: int = 200):
         {"title": "Log in", "error": error, "csrf_token": csrf_token},
         status_code=status_code,
     )
-    if new_cookie is not None:
-        response.set_cookie(security.CSRF_COOKIE, new_cookie, httponly=True, samesite="lax")
-    return response
+    return security.set_csrf_cookie(response, new_cookie)
 
 
 def current_user(request: Request) -> sqlite3.Row | None:

@@ -15,6 +15,19 @@ CREATE TABLE IF NOT EXISTS users (
     active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS content (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind TEXT NOT NULL CHECK (kind IN ('post', 'page')),
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL,
+    body_md TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL CHECK (status IN ('draft', 'published')) DEFAULT 'draft',
+    author_id INTEGER NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (kind, slug)
+);
 """
 
 

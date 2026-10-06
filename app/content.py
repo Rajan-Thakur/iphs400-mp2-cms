@@ -1,0 +1,81 @@
+"""Content (Posts and Pages) data access. No ORM (see spec Implementation
+Decisions). Posts and Pages share this one table and these functions,
+distinguished only by `kind` ('post' | 'page') — see CONTEXT.md.
+"""
+from __future__ import annotations
+
+import re
+import sqlite3
+
+from app import db as db_module
+
+SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+
+def normalize_slug(raw: str) -> str:
+    return raw.strip().lower()
+
+
+def validate_slug(raw: str) -> str | None:
+    """Normalize `raw` and return it if it's a valid slug, else None."""
+    normalized = normalize_slug(raw)
+    return normalized if SLUG_RE.match(normalized) else None
+
+
+def list_content(kind: str) -> list[sqlite3.Row]:
+    conn = db_module.connect()
+    try:
+        return conn.execute(
+            "SELECT content.*, users.email AS author_email FROM content "
+            "JOIN users ON users.id = content.author_id "
+            "WHERE content.kind = ? ORDER BY content.created_at DESC",
+            (kind,),
+        ).fetchall()
+    finally:
+        conn.close()
+
+
+def get_content(content_id: int, kind: str) -> sqlite3.Row | None:
+    conn = db_module.connect()
+    try:
+        return conn.execute(
+            "SELECT * FROM content WHERE id = ? AND kind = ?", (content_id, kind)
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def create_content(kind: str, title: str, slug: str, body_md: str, author_id: int) -> int:
+    conn = db_module.connect()
+    try:
+        cur = conn.execute(
+            "INSERT INTO content (kind, title, slug, body_md, author_id) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (kind, title, slug, body_md, author_id),
+        )
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        conn.close()
+
+
+def update_content(content_id: int, kind: str, title: str, slug: str, body_md: str) -> None:
+    conn = db_module.connect()
+    try:
+        conn.execute(
+            "UPDATE content SET title = ?, slug = ?, body_md = ?, "
+            "updated_at = datetime('now') WHERE id = ? AND kind = ?",
+            (title, slug, body_md, content_id, kind),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def delete_content(content_id: int, kind: str) -> None:
+    conn = db_module.connect()
+    try:
+        conn.execute("DELETE FROM content WHERE id = ? AND kind = ?", (content_id, kind))
+        conn.commit()
+    finally:
+        conn.close()

@@ -27,6 +27,14 @@ form.login-form, form.admin-nav__logout { display: flex; flex-direction: column;
 form.admin-nav__logout { display: inline; }
 .admin-nav { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
 .error { color: #b00020; }
+.success { color: #146c2e; }
+textarea { width: 100%; }
+.post-form label { display: block; margin-block: 0.75rem; }
+.post-list { list-style: none; padding: 0; }
+.post-list__item { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+  padding-block: 0.5rem; border-bottom: 1px solid currentColor; }
+.post-list__delete { display: inline; }
+.post-preview__body { border: 1px solid currentColor; padding: 0.5rem; overflow-wrap: anywhere; }
 """
 
 
