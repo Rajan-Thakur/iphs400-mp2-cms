@@ -8,7 +8,8 @@ from __future__ import annotations
 from app.routes.content_crud import build_content_router
 
 KIND = "page"
+URL_PREFIX = "/admin/pages"
 
 router = build_content_router(
-    kind=KIND, url_prefix="/admin/pages", label="Page", label_plural="Pages",
+    kind=KIND, url_prefix=URL_PREFIX, label="Page", label_plural="Pages",
 )

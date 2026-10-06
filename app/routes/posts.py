@@ -7,7 +7,8 @@ from __future__ import annotations
 from app.routes.content_crud import build_content_router
 
 KIND = "post"
+URL_PREFIX = "/admin/posts"
 
 router = build_content_router(
-    kind=KIND, url_prefix="/admin/posts", label="Post", label_plural="Posts",
+    kind=KIND, url_prefix=URL_PREFIX, label="Post", label_plural="Posts",
 )

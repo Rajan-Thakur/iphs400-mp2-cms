@@ -49,6 +49,43 @@ def list_published(kind: str) -> list[sqlite3.Row]:
         conn.close()
 
 
+def count_by_status() -> dict[str, int]:
+    """Combined draft/published counts across both kinds (Posts and Pages
+    together) — the dashboard shows one total, not split by type."""
+    conn = db_module.connect()
+    try:
+        rows = conn.execute("SELECT status, COUNT(*) AS n FROM content GROUP BY status").fetchall()
+    finally:
+        conn.close()
+    counts = {STATUS_DRAFT: 0, STATUS_PUBLISHED: 0}
+    for row in rows:
+        counts[row["status"]] = row["n"]
+    return counts
+
+
+def list_filtered(*, status: str | None = None, kind: str | None = None) -> list[sqlite3.Row]:
+    """All content (Posts and Pages together), optionally narrowed by
+    status and/or kind. None means "no filter" (show all) for that axis."""
+    query = (
+        "SELECT content.*, users.email AS author_email FROM content "
+        "JOIN users ON users.id = content.author_id WHERE 1 = 1"
+    )
+    params: list[str] = []
+    if status is not None:
+        query += " AND content.status = ?"
+        params.append(status)
+    if kind is not None:
+        query += " AND content.kind = ?"
+        params.append(kind)
+    query += " ORDER BY content.created_at DESC"
+
+    conn = db_module.connect()
+    try:
+        return conn.execute(query, params).fetchall()
+    finally:
+        conn.close()
+
+
 def get_content(content_id: int, kind: str) -> sqlite3.Row | None:
     conn = db_module.connect()
     try:

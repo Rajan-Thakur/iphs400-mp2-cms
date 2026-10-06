@@ -1,0 +1,6 @@
+{% extends "admin/base.html" %}
+{% block admin_content %}
+  <h1>Dashboard</h1>
+  <p class="dashboard-counts">{{ counts["draft"] }} drafts &middot; {{ counts["published"] }} published</p>
+  <p><a href="/admin/content">View all content</a></p>
+{% endblock %}

@@ -38,6 +38,8 @@ textarea { width: 100%; }
 .content-list__delete, .content-list__publish { display: inline; }
 .content-preview__body { border: 1px solid currentColor; padding: 0.5rem; overflow-wrap: anywhere; }
 .site-nav { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.content-filters { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-block: 1rem; }
+.dashboard-counts { font-size: 1.1rem; }
 """
 
 
