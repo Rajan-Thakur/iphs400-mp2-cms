@@ -16,7 +16,7 @@ from fastapi.templating import Jinja2Templates
 from app import security, settings
 from app.guards import NeedsLogin, require_editor_or_admin
 from app.publish import CSS, nav_items
-from app.routes import auth, pages, posts
+from app.routes import auth, pages, posts, users
 
 templates = Jinja2Templates(directory=str(settings.TEMPLATES))
 
@@ -26,6 +26,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router)
     app.include_router(posts.router)
     app.include_router(pages.router)
+    app.include_router(users.router)
 
     @app.exception_handler(NeedsLogin)
     def _redirect_to_login(request: Request, exc: NeedsLogin):

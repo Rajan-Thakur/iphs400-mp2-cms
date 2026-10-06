@@ -1,0 +1,32 @@
+{% extends "admin/base.html" %}
+{% block admin_content %}
+  <h1>Users</h1>
+  {% if saved == "created" %}<p class="success">User created.</p>{% endif %}
+  {% if saved == "role-changed" %}<p class="success">Role updated.</p>{% endif %}
+  {% if saved == "deactivated" %}<p class="success">User deactivated.</p>{% endif %}
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <p><a href="/admin/users/new">New user</a></p>
+  <ul class="content-list">
+    {% for u in users %}
+      <li class="content-list__item">
+        <span class="content-list__title">{{ u["email"] }}</span>
+        {% if u["active"] %}
+          <form method="post" action="/admin/users/{{ u['id'] }}/role" class="content-list__publish">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <select name="role">
+              <option value="editor" {% if u["role"] == "editor" %}selected{% endif %}>editor</option>
+              <option value="admin" {% if u["role"] == "admin" %}selected{% endif %}>admin</option>
+            </select>
+            <button type="submit">Change role</button>
+          </form>
+          <form method="post" action="/admin/users/{{ u['id'] }}/deactivate" class="content-list__delete">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit">Deactivate</button>
+          </form>
+        {% else %}
+          <span class="content-list__meta">{{ u["role"] }} &middot; deactivated</span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

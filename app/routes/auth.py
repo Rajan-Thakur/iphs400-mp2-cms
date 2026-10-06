@@ -69,8 +69,14 @@ def login_submit(
         return _render_login(request, error="Your session expired — please try again.", status_code=403)
 
     row = _user_by_email(email)
-    if row is None or not row["active"] or not security.verify_password(password, row["password_hash"]):
+    if row is None or not security.verify_password(password, row["password_hash"]):
         return _render_login(request, error="Incorrect email or password.", status_code=401)
+    if not row["active"]:
+        return _render_login(
+            request,
+            error="This account has been deactivated. Contact an Admin if you need access restored.",
+            status_code=403,
+        )
 
     response = RedirectResponse("/admin", status_code=303)
     response.set_cookie(
