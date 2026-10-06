@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -33,7 +34,14 @@ def spend(series: list[float | None]) -> float:
     >>> spend([None, 4.0, None, 7.0])
     3.0
     """
-    raise NotImplementedError("MP2 Exercise B: implement me with /tdd")
+    total, previous = 0.0, None
+    for reading in series:
+        if reading is None:
+            continue
+        if previous is not None and reading > previous:
+            total += reading - previous
+        previous = reading
+    return total
 
 def read_rows(path: Path) -> list[dict]:
     with path.open(newline="") as f:
@@ -68,6 +76,9 @@ def ticket_phases(phases: dict[str, dict]) -> list[str]:
 
 
 def main() -> None:
+    # The report prints · and →, which the Windows console code page can't encode.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
     ap.add_argument("--ledger", type=Path, default=LEDGER)
     ap.add_argument("--remaining", type=int, default=0, help="tickets not yet built")
