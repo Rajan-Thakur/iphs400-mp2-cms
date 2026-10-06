@@ -9,14 +9,12 @@ import sqlite3
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 
 from app import content as content_module
-from app import security, settings
+from app import security
 from app.guards import require_admin, require_editor_or_admin
 from app.mdrender import render_markdown
-
-templates = Jinja2Templates(directory=str(settings.TEMPLATES))
+from app.templating import templates
 
 LIST_TEMPLATE = "admin/content_list.html"
 FORM_TEMPLATE = "admin/content_form.html"
@@ -24,6 +22,7 @@ FORM_TEMPLATE = "admin/content_form.html"
 
 def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural: str) -> APIRouter:
     router = APIRouter(prefix=url_prefix)
+    link_prefix = url_prefix.lstrip("/")  # templates prepend `to_root` (app/templating.py)
     publish_detail = (
         f"Only an Admin can publish or unpublish a {label} — ask an Admin to do this for you."
     )
@@ -40,7 +39,7 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
                 "current_user": user,
                 "csrf_token": csrf_token,
                 "item": item,
-                "url_prefix": url_prefix,
+                "link_prefix": link_prefix,
                 "form_title": title,
                 "form_slug": slug,
                 "form_body_md": body_md,
@@ -63,7 +62,7 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
         response = templates.TemplateResponse(
             request, LIST_TEMPLATE,
             {"title": label_plural, "label": label, "label_plural": label_plural,
-             "url_prefix": url_prefix, "current_user": user, "items": items,
+             "link_prefix": link_prefix, "current_user": user, "items": items,
              "csrf_token": csrf_token, "saved": saved, "error": error,
              "is_admin": user["role"] == "admin"},
             status_code=status_code,

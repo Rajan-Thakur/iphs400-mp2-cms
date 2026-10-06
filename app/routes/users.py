@@ -8,13 +8,12 @@ import sqlite3
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
 
-from app import security, settings
+from app import security
 from app import users as users_module
 from app.guards import require_admin
+from app.templating import templates
 
-templates = Jinja2Templates(directory=str(settings.TEMPLATES))
 router = APIRouter(prefix="/admin/users")
 
 CSRF_EXPIRED_MESSAGE = "Your session expired — please try again."

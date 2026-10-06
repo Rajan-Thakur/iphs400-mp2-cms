@@ -1,7 +1,7 @@
 {% extends "admin/base.html" %}
 {% block admin_content %}
   <h1>All content</h1>
-  <form method="get" action="/admin/content" class="content-filters">
+  <form method="get" action="{{ to_root }}admin/content" class="content-filters">
     <label>Status
       <select name="status" onchange="this.form.submit()">
         <option value="all" {% if status_filter == "all" %}selected{% endif %}>All</option>
@@ -24,7 +24,7 @@
         <li class="content-list__item">
           <span class="content-list__title">{{ item["title"] }}</span>
           <span class="content-list__meta">{{ item["kind"] }} &middot; {{ item["status"] }} &middot; {{ item["author_email"] }}</span>
-          <a href="{{ edit_url_prefix[item['kind']] }}/{{ item['id'] }}/edit">Edit</a>
+          <a href="{{ to_root }}{{ edit_url_prefix[item['kind']] }}/{{ item['id'] }}/edit">Edit</a>
         </li>
       {% endfor %}
     </ul>

@@ -3,7 +3,7 @@
   <h1>{{ title }}</h1>
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
   <form method="post"
-        action="{{ url_prefix ~ '/' ~ item['id'] ~ '/edit' if item else url_prefix ~ '/new' }}"
+        action="{{ to_root }}{{ link_prefix }}/{{ item['id'] ~ '/edit' if item else 'new' }}"
         class="content-form" id="content-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <label>Title
@@ -31,7 +31,7 @@
         timer = setTimeout(function () {
           var body = new URLSearchParams();
           body.set("body_md", textarea.value);
-          fetch("{{ url_prefix }}/preview", { method: "POST", body: body })
+          fetch("{{ to_root }}{{ link_prefix }}/preview", { method: "POST", body: body })
             .then(function (response) {
               // An expired session redirects to /login; don't paste that page in.
               if (!response.ok || response.redirected) { throw new Error("preview failed"); }

@@ -10,13 +10,11 @@ import sqlite3
 
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
 
 from app import db as db_module
-from app import security, settings
+from app import security
 from app import users as users_module
-
-templates = Jinja2Templates(directory=str(settings.TEMPLATES))
+from app.templating import templates
 router = APIRouter()
 
 

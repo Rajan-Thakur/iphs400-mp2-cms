@@ -1,25 +1,25 @@
 {% extends "base.html" %}
-{# Admin pages live at nested URLs (/admin/posts/1/edit) and are never
-   exported, so they link the stylesheet from the server root instead of
-   the public templates' relative default. #}
-{% block css_href %}/style.css{% endblock %}
-{% block brand %}<a href="/admin">Admin console</a>{% endblock %}
+{# Admin pages live at nested URLs (/admin/posts/1/edit), so every link is
+   prefixed with `to_root` — the "../" steps back to the server root, injected
+   by app/templating.py — to stay relative at any depth. #}
+{% block css_href %}{{ to_root }}style.css{% endblock %}
+{% block brand %}<a href="{{ to_root }}admin">Admin console</a>{% endblock %}
 {% block content %}
   <nav class="admin-nav">
-    <a href="/admin">Dashboard</a>
+    <a href="{{ to_root }}admin">Dashboard</a>
     {% if current_user %}
-      <a href="/admin/posts">Posts</a>
-      <a href="/admin/pages">Pages</a>
+      <a href="{{ to_root }}admin/posts">Posts</a>
+      <a href="{{ to_root }}admin/pages">Pages</a>
       {% if current_user["role"] == "admin" %}
-        <a href="/admin/users">Users</a>
+        <a href="{{ to_root }}admin/users">Users</a>
       {% endif %}
       <span class="admin-nav__who">{{ current_user["email"] }} ({{ current_user["role"] }})</span>
-      <form method="post" action="/logout" class="admin-nav__logout">
+      <form method="post" action="{{ to_root }}logout" class="admin-nav__logout">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <button type="submit">Log out</button>
       </form>
     {% else %}
-      <a href="/login">Log in</a>
+      <a href="{{ to_root }}login">Log in</a>
     {% endif %}
   </nav>
   <section class="admin-content">

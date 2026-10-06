@@ -4,20 +4,20 @@ filterable content list across Posts and Pages (ticket T08).
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query, Request
-from fastapi.templating import Jinja2Templates
 
 from app import content as content_module
-from app import security, settings
+from app import security
 from app.guards import require_editor_or_admin
 from app.routes import pages as pages_module
 from app.routes import posts as posts_module
+from app.templating import templates
 
-templates = Jinja2Templates(directory=str(settings.TEMPLATES))
 router = APIRouter()
 
 VALID_STATUSES = {content_module.STATUS_DRAFT, content_module.STATUS_PUBLISHED}
-EDIT_URL_PREFIX = {posts_module.KIND: posts_module.URL_PREFIX,
-                   pages_module.KIND: pages_module.URL_PREFIX}
+# Relative to the server root; templates prepend `to_root` (see app/templating.py).
+EDIT_URL_PREFIX = {posts_module.KIND: posts_module.URL_PREFIX.lstrip("/"),
+                   pages_module.KIND: pages_module.URL_PREFIX.lstrip("/")}
 VALID_KINDS = set(EDIT_URL_PREFIX)
 
 

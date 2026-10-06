@@ -7,28 +7,28 @@
   {% if saved == "published" %}<p class="success">{{ label }} published.</p>{% endif %}
   {% if saved == "unpublished" %}<p class="success">{{ label }} unpublished.</p>{% endif %}
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
-  <p><a href="{{ url_prefix }}/new">New {{ label | lower }}</a></p>
+  <p><a href="{{ to_root }}{{ link_prefix }}/new">New {{ label | lower }}</a></p>
   {% if items %}
     <ul class="content-list">
       {% for item in items %}
         <li class="content-list__item">
           <span class="content-list__title">{{ item["title"] }}</span>
           <span class="content-list__meta">{{ item["status"] }} &middot; {{ item["author_email"] }}</span>
-          <a href="{{ url_prefix }}/{{ item['id'] }}/edit">Edit</a>
+          <a href="{{ to_root }}{{ link_prefix }}/{{ item['id'] }}/edit">Edit</a>
           {% if is_admin %}
             {% if item["status"] == "draft" %}
-              <form method="post" action="{{ url_prefix }}/{{ item['id'] }}/publish" class="content-list__publish">
+              <form method="post" action="{{ to_root }}{{ link_prefix }}/{{ item['id'] }}/publish" class="content-list__publish">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <button type="submit">Publish</button>
               </form>
             {% else %}
-              <form method="post" action="{{ url_prefix }}/{{ item['id'] }}/unpublish" class="content-list__publish">
+              <form method="post" action="{{ to_root }}{{ link_prefix }}/{{ item['id'] }}/unpublish" class="content-list__publish">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <button type="submit">Unpublish</button>
               </form>
             {% endif %}
           {% endif %}
-          <form method="post" action="{{ url_prefix }}/{{ item['id'] }}/delete" class="content-list__delete">
+          <form method="post" action="{{ to_root }}{{ link_prefix }}/{{ item['id'] }}/delete" class="content-list__delete">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <button type="submit">Delete</button>
           </form>
