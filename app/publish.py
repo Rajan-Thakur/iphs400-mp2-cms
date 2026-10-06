@@ -18,9 +18,15 @@ from app import settings
 
 CSS = """/* Minimal starter styles — make them yours. */
 :root { color-scheme: light dark; }
+* { box-sizing: border-box; }
 body { font: 16px/1.6 system-ui, sans-serif; margin: 0 auto; max-width: 42rem; padding: 1rem; }
 header a { font-weight: 700; text-decoration: none; }
 main { margin-block: 2rem; }
+input, button, select, textarea { max-width: 100%; font: inherit; }
+form.login-form, form.admin-nav__logout { display: flex; flex-direction: column; gap: 0.5rem; max-width: 100%; }
+form.admin-nav__logout { display: inline; }
+.admin-nav { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.error { color: #b00020; }
 """
 
 

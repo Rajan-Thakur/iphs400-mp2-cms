@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav class="admin-nav">
+    <a href="/admin">Dashboard</a>
+    {% if current_user %}
+      <span class="admin-nav__who">{{ current_user["email"] }} ({{ current_user["role"] }})</span>
+      <form method="post" action="/logout" class="admin-nav__logout">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit">Log out</button>
+      </form>
+    {% else %}
+      <a href="/login">Log in</a>
+    {% endif %}
+  </nav>
+  <section class="admin-content">
+    {% block admin_content %}{% endblock %}
+  </section>
+{% endblock %}
