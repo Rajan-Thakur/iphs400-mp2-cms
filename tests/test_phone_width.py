@@ -44,6 +44,11 @@ def awkward_content():
             ids[kind], kind, f"{kind.title()} {LONG_WORD}", f"wide-{kind}",
             WIDE_BODY + "\nMore.", saved_by=author)
         content_module.set_status(ids[kind], kind, content_module.STATUS_PUBLISHED)
+    # A Scheduled Post: the lists show its badge and time, and its edit screen
+    # shows the Schedule card with Cancel schedule.
+    ids["scheduled"] = content_module.create_content(
+        "post", f"Scheduled {LONG_WORD}", "wide-scheduled", WIDE_BODY, author)
+    assert content_module.set_schedule(ids["scheduled"], "post", "2999-01-01 09:00:00")
     return ids
 
 
@@ -75,6 +80,7 @@ def test_login_page_with_its_error_message_fits_a_phone(phone):
 
 ADMIN_SCREENS = [
     "/admin", "/admin/content", "/admin/content?status=published&type=post",
+    "/admin/content?status=scheduled", "/admin/posts/{scheduled}/edit",
     "/admin/posts", "/admin/posts/new", "/admin/posts/{post}/edit",
     "/admin/pages", "/admin/pages/new", "/admin/pages/{page}/edit",
     "/admin/users", "/admin/users/new",

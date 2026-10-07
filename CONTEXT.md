@@ -52,5 +52,9 @@ The list of an item's Revisions, newest first, on its edit screen. The newest is
 Returning an item's title, slug, and body to those of an earlier Revision. Editors and Admins can do it; it is itself recorded as a new Revision, so a Roll back can be undone the same way. Status is unchanged: a Published item's restored text reaches the site on the next static export.
 _Avoid_: restore, revert, undo
 
-**Scheduled publishing** _(stretch goal)_:
-Setting a future date/time at which a Draft automatically becomes Published, with no manual step at that time.
+**Scheduled publishing**:
+An Admin setting a future time, in UTC, after which a Draft becomes Published. The public site is static, so nothing happens at that moment: the item becomes Published on the next `cms publish` after its time, which switches it before writing the static export. Setting or cancelling a schedule records no Revision, since it changes Status, not content.
+_Avoid_: auto-publish, publishing "automatically"
+
+**Scheduled**:
+A Draft with a publish time set. The dashboard and lists show it as "scheduled", apart from other Drafts. Publishing or unpublishing it by hand cancels its schedule.

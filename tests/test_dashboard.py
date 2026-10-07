@@ -44,7 +44,7 @@ def test_dashboard_shows_a_combined_count_across_posts_and_pages(client_as):
 
 
 def test_dashboard_count_matches_the_database_exactly(client_as):
-    assert content_module.count_by_status() == {"draft": 0, "published": 0}
+    assert content_module.count_by_status() == {"draft": 0, "scheduled": 0, "published": 0}
     response = client_as("editor").get("/admin")
     assert "0 drafts" in _visible_text(response.text)
     assert "0 published" in _visible_text(response.text)

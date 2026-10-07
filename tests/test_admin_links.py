@@ -47,11 +47,14 @@ def seeded_ids():
     # A second save gives each edit screen a Roll back form to check.
     content_module.update_content(ids["post_id"], "post", "P", "p", "y", saved_by=admin_id)
     content_module.update_content(ids["page_id"], "page", "Pg", "pg", "y", saved_by=admin_id)
+    # A Scheduled Page: its edit screen adds a Cancel schedule form, and the
+    # lists show its badge.
+    assert content_module.set_schedule(ids["page_id"], "page", "2999-01-01 09:00:00")
     return ids
 
 
 ADMIN_PAGES = [
-    "/admin", "/admin/content",
+    "/admin", "/admin/content", "/admin/content?status=scheduled",
     "/admin/posts", "/admin/posts/new", "/admin/posts/{post_id}/edit",
     "/admin/pages", "/admin/pages/new", "/admin/pages/{page_id}/edit",
     "/admin/users", "/admin/users/new",
@@ -99,6 +102,7 @@ FAILED_POST_PAGES = [
     "/admin/posts/{post_id}/delete", "/admin/pages/{page_id}/publish",
     "/admin/posts/{post_id}/edit", "/admin/users/{post_id}/role",
     "/admin/posts/{post_id}/revisions/1/rollback",
+    "/admin/posts/{post_id}/schedule", "/admin/pages/{page_id}/cancel-schedule",
 ]
 
 

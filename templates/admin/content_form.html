@@ -28,6 +28,35 @@
       <div id="preview" class="content-preview__body">{{ preview_html | safe }}</div>
     </section>
   </div>
+  {% if item and item["status"] == "draft" and (is_admin or item["publish_at"]) %}
+    <section class="schedule card">
+      <h2>Schedule</h2>
+      {% if item["publish_at"] %}
+        <p>Scheduled to publish after <strong>{{ item["publish_at"] | utc_time }}</strong>.</p>
+      {% endif %}
+      <p class="schedule__note">Times are in UTC. The public site is static, so a scheduled
+        {{ item["kind"] }} becomes Published on the next <code>cms publish</code> after its
+        time, not at that moment on its own.</p>
+      {% if is_admin %}
+        <div class="schedule__forms">
+          <form method="post" action="{{ to_root }}{{ link_prefix }}/{{ item['id'] }}/schedule">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <label>Publish after (UTC)
+              <input type="datetime-local" name="publish_at" required
+                     value="{{ item['publish_at'][:16] | replace(' ', 'T') if item['publish_at'] else '' }}">
+            </label>
+            <button type="submit">{{ "Change time" if item["publish_at"] else "Schedule" }}</button>
+          </form>
+          {% if item["publish_at"] %}
+            <form method="post" action="{{ to_root }}{{ link_prefix }}/{{ item['id'] }}/cancel-schedule">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button type="submit" class="button--secondary">Cancel schedule</button>
+            </form>
+          {% endif %}
+        </div>
+      {% endif %}
+    </section>
+  {% endif %}
   {% if revisions %}
     <section class="revisions card">
       <h2>Revisions</h2>

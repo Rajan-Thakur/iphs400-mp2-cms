@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import re
 import sqlite3
+from datetime import datetime, timezone
 
 from app import db as db_module
 
@@ -13,6 +14,18 @@ SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 STATUS_DRAFT = "draft"
 STATUS_PUBLISHED = "published"
+
+# Not a Status: a Scheduled item is a Draft with a publish_at set (see
+# CONTEXT.md). The lists, filters and dashboard counts show it apart from
+# other Drafts, using this one expression.
+LISTED_SCHEDULED = "scheduled"
+LISTED_AS_SQL = (
+    f"CASE WHEN content.status = '{STATUS_DRAFT}' AND content.publish_at IS NOT NULL "
+    f"THEN '{LISTED_SCHEDULED}' ELSE content.status END"
+)
+
+# How every stored time is written: UTC, as SQLite's datetime('now') gives it.
+TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 # A Page is exported to site/<slug>.html, so these slugs would overwrite a
 # file the export itself writes. Maps kind -> {slug: what it would clobber}.
@@ -34,11 +47,29 @@ def validate_slug(raw: str) -> str | None:
     return normalized if SLUG_RE.match(normalized) else None
 
 
+def to_timestamp(moment: datetime) -> str:
+    """`moment` in the stored UTC format. A naive datetime is taken as UTC."""
+    if moment.tzinfo is not None:
+        moment = moment.astimezone(timezone.utc)
+    return moment.strftime(TIMESTAMP_FORMAT)
+
+
+def parse_publish_at(raw: str) -> str | None:
+    """A date and time typed into the Schedule form (e.g. "2026-10-08T09:30"
+    from <input type="datetime-local">), read as UTC and returned in the
+    stored format, or None if it can't be read."""
+    try:
+        return to_timestamp(datetime.fromisoformat(raw.strip()))
+    except ValueError:
+        return None
+
+
 def list_content(kind: str) -> list[sqlite3.Row]:
     conn = db_module.connect()
     try:
         return conn.execute(
-            "SELECT content.*, users.email AS author_email FROM content "
+            f"SELECT content.*, {LISTED_AS_SQL} AS listed_as, users.email AS author_email "
+            "FROM content "
             "JOIN users ON users.id = content.author_id "
             "WHERE content.kind = ? ORDER BY content.created_at DESC",
             (kind,),
@@ -59,29 +90,33 @@ def list_published(kind: str) -> list[sqlite3.Row]:
 
 
 def count_by_status() -> dict[str, int]:
-    """Combined draft/published counts across both kinds (Posts and Pages
-    together) — the dashboard shows one total, not split by type."""
+    """Combined draft/scheduled/published counts across both kinds (Posts and
+    Pages together) — the dashboard shows one total, not split by type. A
+    Scheduled item counts only as scheduled, so the three sum to the total."""
     conn = db_module.connect()
     try:
-        rows = conn.execute("SELECT status, COUNT(*) AS n FROM content GROUP BY status").fetchall()
+        rows = conn.execute(
+            f"SELECT {LISTED_AS_SQL} AS listed_as, COUNT(*) AS n FROM content GROUP BY listed_as"
+        ).fetchall()
     finally:
         conn.close()
-    counts = {STATUS_DRAFT: 0, STATUS_PUBLISHED: 0}
+    counts = {STATUS_DRAFT: 0, LISTED_SCHEDULED: 0, STATUS_PUBLISHED: 0}
     for row in rows:
-        counts[row["status"]] = row["n"]
+        counts[row["listed_as"]] = row["n"]
     return counts
 
 
 def list_filtered(*, status: str | None = None, kind: str | None = None) -> list[sqlite3.Row]:
     """All content (Posts and Pages together), optionally narrowed by
-    status and/or kind. None means "no filter" (show all) for that axis."""
+    status ('draft', 'scheduled' or 'published', as listed) and/or kind.
+    None means "no filter" (show all) for that axis."""
     query = (
-        "SELECT content.*, users.email AS author_email FROM content "
-        "JOIN users ON users.id = content.author_id WHERE 1 = 1"
+        f"SELECT content.*, {LISTED_AS_SQL} AS listed_as, users.email AS author_email "
+        "FROM content JOIN users ON users.id = content.author_id WHERE 1 = 1"
     )
     params: list[str] = []
     if status is not None:
-        query += " AND content.status = ?"
+        query += f" AND {LISTED_AS_SQL} = ?"
         params.append(status)
     if kind is not None:
         query += " AND content.kind = ?"
@@ -195,14 +230,54 @@ def list_revisions(content_id: int, kind: str) -> list[sqlite3.Row]:
 
 
 def set_status(content_id: int, kind: str, status: str) -> None:
+    """Publish or unpublish by hand. Either way any schedule is cancelled:
+    a Published item no longer needs it, and an unpublished one shouldn't
+    come back on its own."""
     conn = db_module.connect()
     try:
         conn.execute(
-            "UPDATE content SET status = ?, updated_at = datetime('now') "
+            "UPDATE content SET status = ?, publish_at = NULL, updated_at = datetime('now') "
             "WHERE id = ? AND kind = ?",
             (status, content_id, kind),
         )
         conn.commit()
+    finally:
+        conn.close()
+
+
+def set_schedule(content_id: int, kind: str, publish_at: str | None) -> bool:
+    """Schedule a Draft for `publish_at` (stored UTC format), or cancel its
+    schedule with None. Only a Draft can be scheduled; returns whether the
+    item was one. Records no Revision: like Publish, it changes Status, not
+    content."""
+    conn = db_module.connect()
+    try:
+        cur = conn.execute(
+            "UPDATE content SET publish_at = ? WHERE id = ? AND kind = ? AND status = ?",
+            (publish_at, content_id, kind, STATUS_DRAFT),
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
+def publish_due(now: datetime | None = None) -> list[sqlite3.Row]:
+    """Publish every Scheduled item whose time has come (publish_at <= now,
+    UTC; default the current time) and return them. `cms publish` calls this
+    before writing site/, so a Scheduled item becomes Published on the first
+    export after its time."""
+    now_stamp = to_timestamp(now or datetime.now(timezone.utc))
+    conn = db_module.connect()
+    try:
+        now_published = conn.execute(
+            "UPDATE content SET status = ?, publish_at = NULL, updated_at = datetime('now') "
+            "WHERE status = ? AND publish_at IS NOT NULL AND publish_at <= ? "
+            "RETURNING kind, title, slug",
+            (STATUS_PUBLISHED, STATUS_DRAFT, now_stamp),
+        ).fetchall()
+        conn.commit()
+        return now_published
     finally:
         conn.close()
 
