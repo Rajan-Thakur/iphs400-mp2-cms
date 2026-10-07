@@ -33,12 +33,16 @@ def _admin_id() -> int:
 
 @pytest.fixture
 def awkward_content():
-    """A published Post and Page whose title and body are hard to fit."""
+    """A published Post and Page whose title and body are hard to fit, each
+    saved twice so its edit screen lists a revision with a Roll back button."""
     author = _admin_id()
     ids = {}
     for kind in ("post", "page"):
         ids[kind] = content_module.create_content(
             kind, f"{kind.title()} {LONG_WORD}", f"wide-{kind}", WIDE_BODY, author)
+        content_module.update_content(
+            ids[kind], kind, f"{kind.title()} {LONG_WORD}", f"wide-{kind}",
+            WIDE_BODY + "\nMore.", saved_by=author)
         content_module.set_status(ids[kind], kind, content_module.STATUS_PUBLISHED)
     return ids
 

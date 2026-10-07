@@ -28,6 +28,36 @@
       <div id="preview" class="content-preview__body">{{ preview_html | safe }}</div>
     </section>
   </div>
+  {% if revisions %}
+    <section class="revisions card">
+      <h2>Revisions</h2>
+      <ul class="revision-list">
+        {% for revision in revisions %}
+          <li class="revision">
+            <div class="revision__main">
+              <span class="revision__title">Version {{ revision["version"] }}: {{ revision["title"] }}</span>
+              <span class="revision__meta">
+                {% if loop.first %}<span class="badge badge--current">Current</span>{% endif %}
+                {{ revision["saved_by_email"] }} · {{ revision["saved_at"] }} UTC
+                {% if revision["rolled_back_to"] %}· Rolled back to version {{ revision["rolled_back_to"] }}{% endif %}
+              </span>
+              <details class="revision__body">
+                <summary>Show Markdown</summary>
+                <pre>{{ revision["body_md"] }}</pre>
+              </details>
+            </div>
+            {% if not loop.first %}
+              <form method="post" class="revision__rollback"
+                    action="{{ to_root }}{{ link_prefix }}/{{ item['id'] }}/revisions/{{ revision['version'] }}/rollback">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="button--secondary button--small">Roll back</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
   <script>
     (function () {
       var textarea = document.getElementById("body_md");

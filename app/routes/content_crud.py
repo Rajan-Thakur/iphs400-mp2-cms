@@ -44,6 +44,7 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
                 "form_slug": slug,
                 "form_body_md": body_md,
                 "preview_html": render_markdown(body_md),
+                "revisions": content_module.list_revisions(item["id"], kind) if item else [],
                 "error": error,
             },
             status_code=status_code,
@@ -69,11 +70,12 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
         )
         return security.set_csrf_cookie(response, new_cookie)
 
-    def _save(request, user, *, item, title, slug, body_md, redirect_saved_as):
-        """Shared by create and update: validate the slug, write the row,
-        and turn an IntegrityError (duplicate slug) into a form error
+    def _save(request, user, *, item, title, slug, body_md, redirect_saved_as,
+              rolled_back_to=None):
+        """Shared by create, update and roll back: validate the slug, write
+        the row, and turn an IntegrityError (duplicate slug) into a form error
         instead of a 500. `item` is None for create, the existing row for
-        update."""
+        update; `rolled_back_to` is the version a Roll back returns to."""
         normalized_slug = content_module.validate_slug(slug)
         if normalized_slug is None:
             return _render_form(
@@ -90,7 +92,9 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
             if item is None:
                 content_module.create_content(kind, title, normalized_slug, body_md, user["id"])
             else:
-                content_module.update_content(item["id"], kind, title, normalized_slug, body_md)
+                content_module.update_content(item["id"], kind, title, normalized_slug, body_md,
+                                              saved_by=user["id"],
+                                              rolled_back_to=rolled_back_to)
         except sqlite3.IntegrityError:
             return _render_form(
                 request, user, item=item, title=title, slug=slug, body_md=body_md,
@@ -158,6 +162,27 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
             return _csrf_error(request, user, item=item, title=title, slug=slug, body_md=body_md)
         return _save(request, user, item=item, title=title, slug=slug, body_md=body_md,
                      redirect_saved_as="updated")
+
+    @router.post("/{item_id}/revisions/{version}/rollback")
+    def roll_back_item(
+        request: Request,
+        item_id: int,
+        version: int,
+        csrf_token: str = Form(...),
+        user=Depends(require_editor_or_admin),
+    ):
+        item = content_module.get_content(item_id, kind)
+        if item is None:
+            return RedirectResponse(url_prefix, status_code=303)
+        if not security.verify_csrf(csrf_token, request.cookies.get(security.CSRF_COOKIE)):
+            return _csrf_error(request, user, item=item, title=item["title"],
+                               slug=item["slug"], body_md=item["body_md"])
+        revision = content_module.get_revision(item_id, kind, version)
+        if revision is None:
+            return RedirectResponse(f"{url_prefix}/{item_id}/edit", status_code=303)
+        return _save(request, user, item=item, title=revision["title"], slug=revision["slug"],
+                     body_md=revision["body_md"], redirect_saved_as="rolled-back",
+                     rolled_back_to=version)
 
     @router.post("/{item_id}/delete")
     def delete_item(

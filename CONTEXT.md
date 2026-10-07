@@ -41,8 +41,16 @@ _Avoid_: approve (there's no separate approval workflow — publish is a single,
 **Static export**:
 The `site/` directory `cms publish` generates from currently-published content only; what `cms deploy` pushes to GitHub Pages.
 
-**Revision history** _(stretch goal)_:
-A record of a Post or Page's prior saved versions, with the ability to roll back to one.
+**Revision**:
+One saved version of a Post or Page: its title, slug, and body, who saved it, and when, numbered 1, 2, 3… within that item. Every create, edit, and Roll back records one; Publish and unpublish do not, since they change Status, not content.
+_Avoid_: snapshot, history entry
+
+**Revision history**:
+The list of an item's Revisions, newest first, on its edit screen. The newest is the Current one.
+
+**Roll back** (verb):
+Returning an item's title, slug, and body to those of an earlier Revision. Editors and Admins can do it; it is itself recorded as a new Revision, so a Roll back can be undone the same way. Status is unchanged: a Published item's restored text reaches the site on the next static export.
+_Avoid_: restore, revert, undo
 
 **Scheduled publishing** _(stretch goal)_:
 Setting a future date/time at which a Draft automatically becomes Published, with no manual step at that time.

@@ -40,10 +40,14 @@ def seeded_ids():
         ).fetchone()["id"]
     finally:
         conn.close()
-    return {
+    ids = {
         "post_id": content_module.create_content("post", "P", "p", "x", admin_id),
         "page_id": content_module.create_content("page", "Pg", "pg", "x", admin_id),
     }
+    # A second save gives each edit screen a Roll back form to check.
+    content_module.update_content(ids["post_id"], "post", "P", "p", "y", saved_by=admin_id)
+    content_module.update_content(ids["page_id"], "page", "Pg", "pg", "y", saved_by=admin_id)
+    return ids
 
 
 ADMIN_PAGES = [
@@ -94,6 +98,7 @@ def test_login_page_links_are_relative_and_resolve(client):
 FAILED_POST_PAGES = [
     "/admin/posts/{post_id}/delete", "/admin/pages/{page_id}/publish",
     "/admin/posts/{post_id}/edit", "/admin/users/{post_id}/role",
+    "/admin/posts/{post_id}/revisions/1/rollback",
 ]
 
 

@@ -43,6 +43,8 @@ def _seed_content(
             "VALUES (?, ?, ?, ?, ?, ?)",
             (kind, title, slug, body_md, status, author["id"]),
         )
+        # The new item's first Revision, committed with it.
+        conn.execute(db_module.BACKFILL_REVISIONS)
         conn.commit()
     finally:
         conn.close()

@@ -57,9 +57,11 @@ POST_ROUTES_EDITOR_OR_ADMIN = [
     ("/admin/posts/new", {"title": "x", "slug": "x", "body_md": "x"}),
     ("/admin/posts/{post_id}/edit", {"title": "x", "slug": "x", "body_md": "x"}),
     ("/admin/posts/{post_id}/delete", {}),
+    ("/admin/posts/{post_id}/revisions/1/rollback", {}),
     ("/admin/pages/new", {"title": "x", "slug": "x", "body_md": "x"}),
     ("/admin/pages/{page_id}/edit", {"title": "x", "slug": "x", "body_md": "x"}),
     ("/admin/pages/{page_id}/delete", {}),
+    ("/admin/pages/{page_id}/revisions/1/rollback", {}),
 ]
 
 # Same shape, but gated by require_admin specifically.
