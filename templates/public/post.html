@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-  <article>
+  <article class="card prose">
     <h1>{{ post["title"] }}</h1>
-    <p><small>{{ post["created_at"] }}</small></p>
+    <p class="post-meta">{{ date }}</p>
     {{ body_html | safe }}
   </article>
+  <a class="back-link" href="{{ home_path }}"><span aria-hidden="true">←</span> All posts</a>
 {% endblock %}

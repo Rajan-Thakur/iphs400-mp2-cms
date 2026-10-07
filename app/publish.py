@@ -18,34 +18,8 @@ from app import content as content_module
 from app import settings
 from app.mdrender import render_markdown
 
-CSS = """/* Minimal starter styles — make them yours. */
-:root { color-scheme: light dark; }
-* { box-sizing: border-box; }
-body { font: 16px/1.6 system-ui, sans-serif; margin: 0 auto; max-width: 42rem; padding: 1rem;
-  overflow-wrap: anywhere; }
-/* Wide Markdown (code, tables, images) scrolls inside itself, not the page. */
-pre, table { display: block; max-width: 100%; overflow-x: auto; }
-td, th { overflow-wrap: normal; }
-img { max-width: 100%; height: auto; }
-header a { font-weight: 700; text-decoration: none; }
-main { margin-block: 2rem; }
-input, button, select, textarea { max-width: 100%; font: inherit; }
-form.login-form, form.admin-nav__logout { display: flex; flex-direction: column; gap: 0.5rem; max-width: 100%; }
-form.admin-nav__logout { display: inline; }
-.admin-nav { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
-.error { color: #b00020; }
-.success { color: #146c2e; }
-textarea { width: 100%; }
-.content-form label { display: block; margin-block: 0.75rem; }
-.content-list { list-style: none; padding: 0; }
-.content-list__item { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
-  padding-block: 0.5rem; border-bottom: 1px solid currentColor; }
-.content-list__delete, .content-list__publish { display: inline; }
-.content-preview__body { border: 1px solid currentColor; padding: 0.5rem; overflow-wrap: anywhere; }
-.site-nav { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-.content-filters { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-block: 1rem; }
-.dashboard-counts { font-size: 1.1rem; }
-"""
+# One stylesheet for the public site and the admin console (served at /style.css).
+CSS = Path(__file__).with_name("style.css").read_text(encoding="utf-8")
 
 
 def environment() -> Environment:
@@ -71,12 +45,18 @@ def _exportable_pages() -> list:
             if not content_module.reserved_slug_reason("page", page["slug"])]
 
 
+def _date(item) -> str:
+    """The calendar day an item was created, e.g. "2026-10-07"."""
+    return item["created_at"][:10]
+
+
 def home_html() -> str:
     """The home page (feed of published Posts), as written to site/index.html."""
     posts = content_module.list_published("post")
     return environment().get_template("public/home.html").render(
         title=settings.SITE_TITLE, items=[
-            {"title": post["title"], "href": f"posts/{post['slug']}.html"} for post in posts
+            {"title": post["title"], "href": f"posts/{post['slug']}.html",
+             "date": _date(post)} for post in posts
         ],
         css_path="style.css", home_path="index.html", nav_items=nav_items(),
     )
@@ -96,7 +76,7 @@ def page_html(page) -> str:
 def _detail_html(template_name: str, item_key: str, item, *, prefix: str) -> str:
     return environment().get_template(template_name).render(
         title=item["title"], site_title=settings.SITE_TITLE,
-        **{item_key: item}, body_html=render_markdown(item["body_md"]),
+        **{item_key: item}, date=_date(item), body_html=render_markdown(item["body_md"]),
         css_path=f"{prefix}style.css", home_path=f"{prefix}index.html",
         nav_items=nav_items(prefix=prefix),
     )

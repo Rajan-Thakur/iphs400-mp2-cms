@@ -5,6 +5,7 @@ right at that page's depth -- so resolve each one the way a browser would.
 """
 from __future__ import annotations
 
+import re
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit
 
@@ -106,3 +107,13 @@ def test_links_on_a_page_rendered_by_a_failed_post_still_resolve(
                                       "role": "editor", "csrf_token": "forged"})
     assert response.status_code == 403, path  # rejected, rendered as an error page
     assert_links_resolve(admin, path, response.text)
+
+
+@pytest.mark.parametrize("path,section", [
+    ("/admin", "Dashboard"), ("/admin/content", "All content"), ("/admin/posts", "Posts"),
+    ("/admin/posts/new", "Posts"), ("/admin/pages", "Pages"), ("/admin/users/new", "Users"),
+])
+def test_admin_nav_marks_the_current_section(client_as, path, section):
+    html = client_as("admin").get(path).text
+    current = re.findall(r'<a [^>]*aria-current="page"[^>]*>([^<]+)</a>', html)
+    assert current == [section], f"{path}: current section {current}"

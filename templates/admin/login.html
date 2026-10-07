@@ -1,13 +1,19 @@
 {% extends "base.html" %}
+{% block body_class %}auth{% endblock %}
+{% block css_href %}{{ to_root }}style.css{% endblock %}
+{% block brand %}<a class="brand" href="{{ to_root }}admin"><span class="brand__mark" aria-hidden="true">✦</span>Admin console</a>{% endblock %}
 {% block content %}
-  <h1>Log in</h1>
-  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
-  <form method="post" action="{{ to_root }}login" class="login-form">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <label for="email">Email</label>
-    <input type="email" id="email" name="email" required autofocus>
-    <label for="password">Password</label>
-    <input type="password" id="password" name="password" required>
-    <button type="submit">Log in</button>
-  </form>
+  <div class="card">
+    <h1>Log in</h1>
+    <p class="lede">Sign in to manage Posts, Pages, and users.</p>
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <form method="post" action="{{ to_root }}login" class="login-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" autocomplete="username" required autofocus>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required>
+      <button type="submit">Log in</button>
+    </form>
+  </div>
 {% endblock %}

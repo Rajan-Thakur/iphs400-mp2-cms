@@ -2,26 +2,35 @@
 {# Admin pages live at nested URLs (/admin/posts/1/edit), so every link is
    prefixed with `to_root` — the "../" steps back to the server root, injected
    by app/templating.py — to stay relative at any depth. #}
+{% block body_class %}admin{% endblock %}
 {% block css_href %}{{ to_root }}style.css{% endblock %}
-{% block brand %}<a href="{{ to_root }}admin">Admin console</a>{% endblock %}
-{% block content %}
-  <nav class="admin-nav">
-    <a href="{{ to_root }}admin">Dashboard</a>
+{% block brand %}<a class="brand" href="{{ to_root }}admin"><span class="brand__mark" aria-hidden="true">✦</span>Admin console</a>{% endblock %}
+{% block topnav %}
+  {% set path = request.url.path %}
+  <nav class="admin-nav" aria-label="Admin">
+    <a href="{{ to_root }}admin" {% if path == "/admin" %}aria-current="page"{% endif %}>Dashboard</a>
     {% if current_user %}
-      <a href="{{ to_root }}admin/posts">Posts</a>
-      <a href="{{ to_root }}admin/pages">Pages</a>
+      <a href="{{ to_root }}admin/content" {% if path.startswith("/admin/content") %}aria-current="page"{% endif %}>All content</a>
+      <a href="{{ to_root }}admin/posts" {% if path.startswith("/admin/posts") %}aria-current="page"{% endif %}>Posts</a>
+      <a href="{{ to_root }}admin/pages" {% if path.startswith("/admin/pages") %}aria-current="page"{% endif %}>Pages</a>
       {% if current_user["role"] == "admin" %}
-        <a href="{{ to_root }}admin/users">Users</a>
+        <a href="{{ to_root }}admin/users" {% if path.startswith("/admin/users") %}aria-current="page"{% endif %}>Users</a>
       {% endif %}
-      <span class="admin-nav__who">{{ current_user["email"] }} ({{ current_user["role"] }})</span>
-      <form method="post" action="{{ to_root }}logout" class="admin-nav__logout">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <button type="submit">Log out</button>
-      </form>
-    {% else %}
-      <a href="{{ to_root }}login">Log in</a>
     {% endif %}
   </nav>
+  <div class="admin-user">
+    {% if current_user %}
+      <span class="admin-nav__who">{{ current_user["email"] }} <span class="badge badge--{{ current_user['role'] }}">{{ current_user["role"] }}</span></span>
+      <form method="post" action="{{ to_root }}logout" class="admin-nav__logout">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="button--ghost button--small">Log out</button>
+      </form>
+    {% else %}
+      <a class="button button--small" href="{{ to_root }}login">Log in</a>
+    {% endif %}
+  </div>
+{% endblock %}
+{% block content %}
   <section class="admin-content">
     {% block admin_content %}{% endblock %}
   </section>

@@ -55,7 +55,7 @@ def seed_posts(db_path: Path) -> None:
     _seed_content(
         db_path, kind="post", title="Welcome", slug="welcome",
         body_md=(
-            "# Welcome\n\nThis site is managed with a small, WordPress-style CMS: "
+            "This site is managed with a small, WordPress-style CMS: "
             "Editors draft Posts and Pages in a local admin console, and an Admin "
             "publishes them to this static site.\n\n"
             "- Posts appear in the feed on the home page.\n"

@@ -6,16 +6,20 @@
   <title>{% block title %}{{ title }}{% endblock %}</title>
   <link rel="stylesheet" href="{% block css_href %}{{ css_path | default('style.css') }}{% endblock %}">
 </head>
-<body>
-  <header>
-    {% block brand %}<a href="{{ home_path | default('index.html') }}">{{ site_title | default(title) }}</a>{% endblock %}
-    {% if nav_items %}
-      <nav class="site-nav">
-        {% for item in nav_items %}<a href="{{ item.href }}">{{ item.title }}</a>{% endfor %}
-      </nav>
-    {% endif %}
+<body class="{% block body_class %}site{% endblock %}">
+  <header class="topbar">
+    <div class="topbar__inner">
+      {% block brand %}<a class="brand" href="{{ home_path | default('index.html') }}"><span class="brand__mark" aria-hidden="true">✦</span>{{ site_title | default(title) }}</a>{% endblock %}
+      {% block topnav %}
+        {% if nav_items %}
+          <nav class="site-nav" aria-label="Pages">
+            {% for item in nav_items %}<a href="{{ item.href }}">{{ item.title }}</a>{% endfor %}
+          </nav>
+        {% endif %}
+      {% endblock %}
+    </div>
   </header>
   <main>{% block content %}{% endblock %}</main>
-  <footer><small>IPHS 400 Mini-Project #2</small></footer>
+  <footer class="site-footer"><small>IPHS 400 Mini-Project #2</small></footer>
 </body>
 </html>

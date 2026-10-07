@@ -1,6 +1,8 @@
 """T08: admin console dashboard and filters (ticket #9)."""
 from __future__ import annotations
 
+import re
+
 from app import content as content_module
 from app import db as db_module
 
@@ -13,6 +15,11 @@ def _author_id() -> int:
         ).fetchone()["id"]
     finally:
         conn.close()
+
+
+def _visible_text(html: str) -> str:
+    """The page as a reader sees it: tags dropped, whitespace collapsed."""
+    return " ".join(re.sub(r"<[^>]+>", " ", html).split())
 
 
 def _seed(kind: str, slug: str, status: str) -> int:
@@ -32,15 +39,15 @@ def test_dashboard_shows_a_combined_count_across_posts_and_pages(client_as):
 
     response = client_as("editor").get("/admin")
     assert response.status_code == 200
-    assert "2 drafts" in response.text
-    assert "3 published" in response.text
+    assert "2 drafts" in _visible_text(response.text)
+    assert "3 published" in _visible_text(response.text)
 
 
 def test_dashboard_count_matches_the_database_exactly(client_as):
     assert content_module.count_by_status() == {"draft": 0, "published": 0}
     response = client_as("editor").get("/admin")
-    assert "0 drafts" in response.text
-    assert "0 published" in response.text
+    assert "0 drafts" in _visible_text(response.text)
+    assert "0 published" in _visible_text(response.text)
 
 
 def test_content_list_filters_by_status_alone(client_as):

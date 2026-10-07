@@ -214,7 +214,7 @@ def test_render_site_nav_lists_published_pages_only(tmp_path):
     content_module.create_content("page", "Draft Page", "draft-only", "x", admin_id)
 
     out = publish_module.render_site(tmp_path / "site")
-    html = (out / "index.html").read_text()
+    html = (out / "index.html").read_text(encoding="utf-8")
     assert "Live Page" in html
     assert "Draft Page" not in html
     assert 'href="/' not in html

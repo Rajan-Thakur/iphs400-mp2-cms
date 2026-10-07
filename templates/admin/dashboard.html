@@ -1,6 +1,20 @@
 {% extends "admin/base.html" %}
 {% block admin_content %}
   <h1>Dashboard</h1>
-  <p class="dashboard-counts">{{ counts["draft"] }} drafts &middot; {{ counts["published"] }} published</p>
-  <p><a href="{{ to_root }}admin/content">View all content</a></p>
+  <p class="lede">Welcome back, {{ current_user["email"] }}.</p>
+  <div class="stats dashboard-counts">
+    <a class="stat" href="{{ to_root }}admin/content?status=draft">
+      <span class="stat__value">{{ counts["draft"] }}</span>
+      <span class="stat__label">drafts</span>
+    </a>
+    <a class="stat" href="{{ to_root }}admin/content?status=published">
+      <span class="stat__value">{{ counts["published"] }}</span>
+      <span class="stat__label">published</span>
+    </a>
+  </div>
+  <div class="quick-actions">
+    <a class="button" href="{{ to_root }}admin/posts/new">New post</a>
+    <a class="button button--secondary" href="{{ to_root }}admin/pages/new">New page</a>
+    <a class="button button--secondary" href="{{ to_root }}admin/content">View all content</a>
+  </div>
 {% endblock %}

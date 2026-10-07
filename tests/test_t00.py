@@ -32,5 +32,5 @@ def test_published_html_uses_relative_paths(tmp_path):
     """Root-absolute paths break on GitHub Pages project URLs (rubric F2)."""
     from app.publish import render_site
 
-    html = (render_site(tmp_path / "site") / "index.html").read_text()
+    html = (render_site(tmp_path / "site") / "index.html").read_text(encoding="utf-8")
     assert 'href="/' not in html and 'src="/' not in html

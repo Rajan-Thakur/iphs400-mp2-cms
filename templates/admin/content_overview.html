@@ -22,13 +22,21 @@
     <ul class="content-list">
       {% for item in items %}
         <li class="content-list__item">
-          <span class="content-list__title">{{ item["title"] }}</span>
-          <span class="content-list__meta">{{ item["kind"] }} &middot; {{ item["status"] }} &middot; {{ item["author_email"] }}</span>
-          <a href="{{ to_root }}{{ edit_url_prefix[item['kind']] }}/{{ item['id'] }}/edit">Edit</a>
+          <div class="content-list__main">
+            <span class="content-list__title">{{ item["title"] }}</span>
+            <span class="content-list__meta">
+              <span class="badge">{{ item["kind"] }}</span>
+              <span class="badge badge--{{ item['status'] }}">{{ item["status"] }}</span>
+              {{ item["author_email"] }}
+            </span>
+          </div>
+          <div class="content-list__actions">
+            <a class="button button--secondary button--small" href="{{ to_root }}{{ edit_url_prefix[item['kind']] }}/{{ item['id'] }}/edit">Edit</a>
+          </div>
         </li>
       {% endfor %}
     </ul>
   {% else %}
-    <p>No content matches these filters.</p>
+    <p class="empty">No content matches these filters.</p>
   {% endif %}
 {% endblock %}
