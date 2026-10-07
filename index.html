@@ -3,24 +3,37 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My CMS</title>
+  <title>UAHS CSHS</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <header>
-    <a href="index.html">My CMS</a>
-    
-      <nav class="site-nav">
-        <a href="about.html">About</a>
-      </nav>
-    
+<body class="site">
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">✦</span>UAHS CSHS</a>
+      
+        
+          <nav class="site-nav" aria-label="Pages">
+            <a href="about.html">About</a>
+          </nav>
+        
+      
+    </div>
   </header>
   <main>
-  <h1>My CMS</h1>
+  <div class="hero">
+    <h1>UAHS CSHS</h1>
+    <p class="lede">The latest posts.</p>
+  </div>
   
-    <ul><li><a href="posts/welcome.html">Welcome</a></li></ul>
+    <ul class="post-feed">
+      
+        <li><a class="post-card" href="posts/upper-arlington-high-school-computer-science-honor-society.html"><span class="post-card__title">First UAHS CSHS post!</span><span class="post-card__date">2026-10-07</span></a></li>
+      
+        <li><a class="post-card" href="posts/welcome.html"><span class="post-card__title">Welcome</span><span class="post-card__date">2026-10-06</span></a></li>
+      
+    </ul>
   
 </main>
-  <footer><small>IPHS 400 Mini-Project #2</small></footer>
+  <footer class="site-footer"><small>IPHS 400 Mini-Project #2</small></footer>
 </body>
 </html>
