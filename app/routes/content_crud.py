@@ -1,4 +1,4 @@
-"""Generic CRUD + publish/unpublish + live-preview routes for one content
+"""Generic CRUD + publish/unpublish + schedule + live-preview routes for one content
 `kind`. Posts and Pages share the same table and almost all of this logic
 (see CONTEXT.md) — only the kind, URL prefix, and display label differ, so
 `posts.py` and `pages.py` are each a few lines that call `build_content_router`.
@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import sqlite3
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -27,8 +28,15 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
         f"Only an Admin can publish or unpublish a {label} — ask an Admin to do this for you."
     )
 
+    schedule_detail = (
+        f"Only an Admin can schedule a {label} — ask an Admin to do this for you."
+    )
+
     def _require_admin_to_publish(request: Request):
         return require_admin(request, detail=publish_detail)
+
+    def _require_admin_to_schedule(request: Request):
+        return require_admin(request, detail=schedule_detail)
 
     def _render_form(request, user, *, item, title, slug, body_md, error, status_code=200):
         csrf_token, new_cookie = security.read_or_mint_csrf(request)
@@ -45,6 +53,7 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
                 "form_body_md": body_md,
                 "preview_html": render_markdown(body_md),
                 "revisions": content_module.list_revisions(item["id"], kind) if item else [],
+                "is_admin": user["role"] == "admin",
                 "error": error,
             },
             status_code=status_code,
@@ -55,6 +64,13 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
         return _render_form(
             request, user, item=item, title=title, slug=slug, body_md=body_md,
             error="Your session expired — please try again.", status_code=403,
+        )
+
+    def _render_item(request, user, item, *, error, status_code=200):
+        """The edit screen for `item` as saved, with an error above it."""
+        return _render_form(
+            request, user, item=item, title=item["title"], slug=item["slug"],
+            body_md=item["body_md"], error=error, status_code=status_code,
         )
 
     def _render_list(request, user, *, saved=None, error=None, status_code=200):
@@ -217,6 +233,53 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
             request, user, item_id, new_status=content_module.STATUS_DRAFT,
             saved_as="unpublished", csrf_token=csrf_token,
         )
+
+    already_published = (
+        f"Only a draft can be scheduled — this {label.lower()} is already published."
+    )
+
+    @router.post("/{item_id}/schedule")
+    def schedule_item(
+        request: Request,
+        item_id: int,
+        publish_at: str = Form(""),
+        csrf_token: str = Form(...),
+        user=Depends(_require_admin_to_schedule),
+    ):
+        """Schedule a Draft to be published by the first `cms publish` after
+        `publish_at` (UTC), or move its time. Records no Revision."""
+        item = content_module.get_content(item_id, kind)
+        if item is None:
+            return RedirectResponse(url_prefix, status_code=303)
+        if not security.verify_csrf(csrf_token, request.cookies.get(security.CSRF_COOKIE)):
+            return _csrf_error(request, user, item=item, title=item["title"],
+                               slug=item["slug"], body_md=item["body_md"])
+        stamp = content_module.parse_publish_at(publish_at)
+        if stamp is None:
+            error = "Enter a date and time (UTC) to schedule it for."
+        elif stamp <= content_module.to_timestamp(datetime.now(timezone.utc)):
+            error = "The publish time must be in the future (UTC)."
+        elif not content_module.set_schedule(item_id, kind, stamp):
+            error = already_published
+        else:
+            return RedirectResponse(f"{url_prefix}?saved=scheduled", status_code=303)
+        return _render_item(request, user, item, error=error)
+
+    @router.post("/{item_id}/cancel-schedule")
+    def cancel_schedule(
+        request: Request, item_id: int, csrf_token: str = Form(...),
+        user=Depends(_require_admin_to_schedule),
+    ):
+        """Cancel a Draft's schedule; it stays a Draft. Records no Revision."""
+        item = content_module.get_content(item_id, kind)
+        if item is None:
+            return RedirectResponse(url_prefix, status_code=303)
+        if not security.verify_csrf(csrf_token, request.cookies.get(security.CSRF_COOKIE)):
+            return _csrf_error(request, user, item=item, title=item["title"],
+                               slug=item["slug"], body_md=item["body_md"])
+        if not content_module.set_schedule(item_id, kind, None):
+            return _render_item(request, user, item, error=already_published)
+        return RedirectResponse(f"{url_prefix}?saved=schedule-cancelled", status_code=303)
 
     @router.post("/preview")
     def preview_item(body_md: str = Form(""), user=Depends(require_editor_or_admin)):

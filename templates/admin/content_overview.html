@@ -6,6 +6,7 @@
       <select name="status" onchange="this.form.submit()">
         <option value="all" {% if status_filter == "all" %}selected{% endif %}>All</option>
         <option value="draft" {% if status_filter == "draft" %}selected{% endif %}>Draft</option>
+        <option value="scheduled" {% if status_filter == "scheduled" %}selected{% endif %}>Scheduled</option>
         <option value="published" {% if status_filter == "published" %}selected{% endif %}>Published</option>
       </select>
     </label>
@@ -26,7 +27,8 @@
             <span class="content-list__title">{{ item["title"] }}</span>
             <span class="content-list__meta">
               <span class="badge">{{ item["kind"] }}</span>
-              <span class="badge badge--{{ item['status'] }}">{{ item["status"] }}</span>
+              <span class="badge badge--{{ item['listed_as'] }}">{{ item["listed_as"] }}</span>
+              {% if item["listed_as"] == "scheduled" %}<span>after {{ item["publish_at"] | utc_time }}</span>{% endif %}
               {{ item["author_email"] }}
             </span>
           </div>

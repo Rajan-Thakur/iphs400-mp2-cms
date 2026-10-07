@@ -26,6 +26,9 @@ CREATE TABLE IF NOT EXISTS content (
     author_id INTEGER NOT NULL REFERENCES users(id),
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    -- Set on a Draft that is Scheduled (see CONTEXT.md): the UTC time after
+    -- which the next `cms publish` makes it Published. NULL otherwise.
+    publish_at TEXT,
     UNIQUE (kind, slug)
 );
 
@@ -57,6 +60,11 @@ SELECT id, 1, title, slug, body_md, author_id, updated_at FROM content
 WHERE id NOT IN (SELECT content_id FROM revisions);
 """
 
+# Columns added to existing tables after they were first created. CREATE
+# TABLE IF NOT EXISTS never changes a table that already exists, so a database
+# made before a column existed gains it here. Maps table -> [(column, type)].
+ADDED_COLUMNS = {"content": [("publish_at", "TEXT")]}
+
 # Database files already brought up to date by this process.
 _schema_ready: set[str] = set()
 
@@ -82,13 +90,24 @@ def connect(db_path: Path | None = None) -> sqlite3.Connection:
     return _open(path)
 
 
+def _add_missing_columns(conn: sqlite3.Connection) -> None:
+    for table, columns in ADDED_COLUMNS.items():
+        present = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+        for name, sql_type in columns:
+            if name not in present:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {sql_type}")
+
+
 def init_db(db_path: Path | None = None) -> None:
-    """Create any missing tables and backfill starting revisions. Safe to run
-    on a new or an existing database, any number of times."""
+    """Create any missing tables and columns, and backfill starting
+    revisions. Safe to run on a new or an existing database, any number of
+    times."""
     path = _path(db_path)
     conn = _open(path)
     try:
-        conn.executescript(SCHEMA + BACKFILL_REVISIONS)
+        conn.executescript(SCHEMA)
+        _add_missing_columns(conn)
+        conn.executescript(BACKFILL_REVISIONS)
         conn.commit()
     finally:
         conn.close()

@@ -1,7 +1,7 @@
 """The `cms` command: serve, publish, deploy.
 
     uv run cms serve      # admin console + public preview at http://localhost:8000
-    uv run cms publish    # render site/ from published content
+    uv run cms publish    # publish Scheduled items now due, then render site/
     uv run cms deploy     # push site/ to the gh-pages branch (Pages serves it)
 """
 from __future__ import annotations
@@ -10,6 +10,7 @@ import argparse
 import subprocess
 import sys
 
+from app import content as content_module
 from app import settings
 from app.publish import render_site
 
@@ -20,7 +21,7 @@ def main(argv: list[str] | None = None) -> int:
     serve = sub.add_parser("serve", help="run the admin console locally")
     serve.add_argument("--port", type=int, default=8000)
     serve.add_argument("--reload", action="store_true", default=True)
-    sub.add_parser("publish", help="render site/ from published content")
+    sub.add_parser("publish", help="publish Scheduled items now due, then render site/")
     deploy = sub.add_parser("deploy", help="push site/ to gh-pages")
     deploy.add_argument("--message", default="Publish site")
     args = parser.parse_args(argv)
@@ -32,6 +33,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "publish":
+        # A Scheduled item whose time (UTC) has passed becomes Published first,
+        # so only Published content reaches site/.
+        for item in content_module.publish_due():
+            print(f"Scheduled {item['kind']} now published: {item['title']} ({item['slug']})")
         out = render_site()
         print(f"Wrote {out}. Preview it with:  python3 -m http.server -d {out} 8001")
         return 0

@@ -14,6 +14,13 @@ def _relative_root(request: Request) -> dict[str, str]:
     return {"to_root": "../" * max(request.url.path.count("/") - 1, 0)}
 
 
+def utc_time(stamp: str) -> str:
+    """A stored UTC timestamp ("2026-10-08 09:30:00") as shown in the admin
+    console: to the minute, marked UTC, e.g. "2026-10-08 09:30 UTC"."""
+    return f"{stamp[:16]} UTC"
+
+
 templates = Jinja2Templates(
     directory=str(settings.TEMPLATES), context_processors=[_relative_root],
 )
+templates.env.filters["utc_time"] = utc_time

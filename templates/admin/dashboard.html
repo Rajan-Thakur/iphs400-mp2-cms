@@ -7,6 +7,10 @@
       <span class="stat__value">{{ counts["draft"] }}</span>
       <span class="stat__label">drafts</span>
     </a>
+    <a class="stat" href="{{ to_root }}admin/content?status=scheduled">
+      <span class="stat__value">{{ counts["scheduled"] }}</span>
+      <span class="stat__label">scheduled</span>
+    </a>
     <a class="stat" href="{{ to_root }}admin/content?status=published">
       <span class="stat__value">{{ counts["published"] }}</span>
       <span class="stat__label">published</span>

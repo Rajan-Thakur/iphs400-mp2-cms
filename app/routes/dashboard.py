@@ -14,7 +14,8 @@ from app.templating import templates
 
 router = APIRouter()
 
-VALID_STATUSES = {content_module.STATUS_DRAFT, content_module.STATUS_PUBLISHED}
+VALID_STATUSES = {content_module.STATUS_DRAFT, content_module.LISTED_SCHEDULED,
+                  content_module.STATUS_PUBLISHED}
 # Relative to the server root; templates prepend `to_root` (see app/templating.py).
 EDIT_URL_PREFIX = {posts_module.KIND: posts_module.URL_PREFIX.lstrip("/"),
                    pages_module.KIND: pages_module.URL_PREFIX.lstrip("/")}

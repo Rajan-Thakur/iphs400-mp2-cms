@@ -10,6 +10,8 @@
   {% if saved == "deleted" %}<p class="success">{{ label }} deleted.</p>{% endif %}
   {% if saved == "published" %}<p class="success">{{ label }} published.</p>{% endif %}
   {% if saved == "unpublished" %}<p class="success">{{ label }} unpublished.</p>{% endif %}
+  {% if saved == "scheduled" %}<p class="success">{{ label }} scheduled. It becomes Published on the next <code>cms publish</code> after its time (UTC).</p>{% endif %}
+  {% if saved == "schedule-cancelled" %}<p class="success">Schedule cancelled. The {{ label | lower }} stays a draft.</p>{% endif %}
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
   {% if items %}
     <ul class="content-list">
@@ -18,7 +20,8 @@
           <div class="content-list__main">
             <span class="content-list__title">{{ item["title"] }}</span>
             <span class="content-list__meta">
-              <span class="badge badge--{{ item['status'] }}">{{ item["status"] }}</span>
+              <span class="badge badge--{{ item['listed_as'] }}">{{ item["listed_as"] }}</span>
+              {% if item["listed_as"] == "scheduled" %}<span>after {{ item["publish_at"] | utc_time }}</span>{% endif %}
               {{ item["author_email"] }}
             </span>
           </div>

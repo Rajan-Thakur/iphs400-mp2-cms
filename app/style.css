@@ -20,6 +20,8 @@
   --success-soft: #e9f8f1;
   --draft: #9a6206;
   --draft-soft: #fdf5e4;
+  --scheduled: #1d6fa5;
+  --scheduled-soft: #e8f3fb;
   --radius: 14px;
   --topbar-h: 4rem;
   --radius-sm: 9px;
@@ -45,6 +47,8 @@
     --success-soft: #11291f;
     --draft: #e7b45a;
     --draft-soft: #2c2412;
+    --scheduled: #7cc0ee;
+    --scheduled-soft: #12263a;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.25);
   }
 }
@@ -266,6 +270,7 @@ select { padding-right: 2rem; }
 }
 .badge--published { background: var(--success-soft); color: var(--success); }
 .badge--draft { background: var(--draft-soft); color: var(--draft); }
+.badge--scheduled { background: var(--scheduled-soft); color: var(--scheduled); }
 .badge--admin { background: var(--accent-soft); color: var(--accent); }
 .badge--current { background: var(--accent-soft); color: var(--accent); }
 
@@ -292,6 +297,14 @@ select { padding-right: 2rem; }
 .content-list__actions { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
 .content-list__actions form { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; }
 .content-list__actions select { padding-block: 0.4rem; }
+
+/* ---- Schedule (editor screen, Admins) ---------------------------------- */
+.schedule { margin-top: 1.5rem; }
+.schedule h2 { margin-top: 0; }
+.schedule__note { color: var(--muted); }
+.schedule__forms { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: flex-end; }
+.schedule__forms form { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: flex-end; margin: 0; }
+.schedule__forms input { max-width: 100%; }
 
 /* ---- Revision history (editor screen) --------------------------------- */
 .revisions { margin-top: 1.5rem; }
