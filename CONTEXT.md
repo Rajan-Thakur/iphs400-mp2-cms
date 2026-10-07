@@ -1,15 +1,15 @@
 # CONTEXT.md glossary
 
-A small, WordPress-style web CMS: a local admin console where Editors and Admins manage content, and a static public site that publishes it. The content model is intentionally generic — built with no specific client in mind. (A specific client site will be built *using* this CMS as a later, separate project.)
+A small, WordPress-style web CMS: a local admin console where Editors and Admins manage content, and a static public site that publishes it. The content model is intentionally generic — built with no specific client in mind. A specific client site will be built *using* this CMS later. The CMS will be built for the Upper Arlington High School's Computer Science Honor Society chapter (UAHS CSHS), specifically for Dr. Diane Kahle (faculty advisor). The chapter needs a website to promote computer science among UAHS students.
 
 ## Roles
 
 **Admin**:
-A CMS user role with full permissions: everything an Editor can do, plus publishing/unpublishing content and managing user accounts (create, change role, deactivate).
+A CMS user role with full permissions: everything an Editor can do, plus publishing/unpublishing content and managing user accounts (create, change role, deactivate). When this CMS is introduced to the client for the UAHS CSHS chapter, Dr. Kahle will be given admin permissions.
 _Avoid_: superadmin, owner
 
 **Editor**:
-A CMS user role that can create, edit, and delete any Post or Page — including another user's drafts — but cannot publish/unpublish content or manage user accounts.
+A CMS user role that can create, edit, and delete any Post or Page — including another user's drafts — but cannot publish/unpublish content or manage user accounts. Student officers will be given Editor permissions.
 _Avoid_: contributor, author (an Author is a content attribute, not a role)
 
 ## Content
@@ -19,11 +19,11 @@ A dated, feed-like content item with a title, slug, Markdown body, draft/publish
 _Avoid_: article, entry
 
 **Page**:
-A static, evergreen content item — same fields and operations as a Post, plus appearing in the public site's navigation once published.
+A static, evergreen content item — same fields and operations as a Post, plus appearing in the public site's navigation once published. Client-specific website will include Latest Posts, offered computer science coursework, contact us, about us (mission + why join + eligibility + requirements + awards).
 _Avoid_: static page (redundant)
 
 **Slug**:
-The URL-safe identifier for a Post or Page, unique within its kind, used to build its published path.
+The URL-safe identifier for a Post or Page, unique within its kind, used to build its published path. 
 
 **Status (Draft / Published)**:
 The two states a Post or Page can be in. A Draft is visible only in the admin console; only a Published item reaches the static export.
