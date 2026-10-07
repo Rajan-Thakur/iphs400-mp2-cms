@@ -6,6 +6,7 @@
   </div>
   {% if saved == "created" %}<p class="success">{{ label }} created.</p>{% endif %}
   {% if saved == "updated" %}<p class="success">{{ label }} updated.</p>{% endif %}
+  {% if saved == "rolled-back" %}<p class="success">{{ label }} rolled back.</p>{% endif %}
   {% if saved == "deleted" %}<p class="success">{{ label }} deleted.</p>{% endif %}
   {% if saved == "published" %}<p class="success">{{ label }} published.</p>{% endif %}
   {% if saved == "unpublished" %}<p class="success">{{ label }} unpublished.</p>{% endif %}

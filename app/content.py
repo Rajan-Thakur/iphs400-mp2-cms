@@ -116,6 +116,19 @@ def get_content(content_id: int, kind: str) -> sqlite3.Row | None:
         conn.close()
 
 
+def _record_revision(conn: sqlite3.Connection, content_id: int, title: str, slug: str,
+                     body_md: str, saved_by: int, rolled_back_to: int | None = None) -> None:
+    """Record one save as the item's next Revision, inside the caller's
+    transaction so the content row and its revision commit together."""
+    conn.execute(
+        "INSERT INTO revisions "
+        "(content_id, version, title, slug, body_md, saved_by, rolled_back_to) "
+        "SELECT ?, COALESCE(MAX(version), 0) + 1, ?, ?, ?, ?, ? "
+        "FROM revisions WHERE content_id = ?",
+        (content_id, title, slug, body_md, saved_by, rolled_back_to, content_id),
+    )
+
+
 def create_content(kind: str, title: str, slug: str, body_md: str, author_id: int) -> int:
     conn = db_module.connect()
     try:
@@ -124,21 +137,59 @@ def create_content(kind: str, title: str, slug: str, body_md: str, author_id: in
             "VALUES (?, ?, ?, ?, ?)",
             (kind, title, slug, body_md, author_id),
         )
+        _record_revision(conn, cur.lastrowid, title, slug, body_md, author_id)
         conn.commit()
         return cur.lastrowid
     finally:
         conn.close()
 
 
-def update_content(content_id: int, kind: str, title: str, slug: str, body_md: str) -> None:
+def update_content(content_id: int, kind: str, title: str, slug: str, body_md: str,
+                   *, saved_by: int, rolled_back_to: int | None = None) -> None:
+    """Save new values for an item and record them as its next revision.
+    `saved_by` is the user saving (Admin or Editor); `rolled_back_to` is the
+    version this save rolls back to, when it is a Roll back."""
     conn = db_module.connect()
     try:
-        conn.execute(
+        cur = conn.execute(
             "UPDATE content SET title = ?, slug = ?, body_md = ?, "
             "updated_at = datetime('now') WHERE id = ? AND kind = ?",
             (title, slug, body_md, content_id, kind),
         )
+        if cur.rowcount:
+            _record_revision(conn, content_id, title, slug, body_md, saved_by, rolled_back_to)
         conn.commit()
+    finally:
+        conn.close()
+
+
+def get_revision(content_id: int, kind: str, version: int) -> sqlite3.Row | None:
+    """One version of one item, or None. Looked up by the item's own id and
+    kind, so a version number can never pull in another item's text."""
+    conn = db_module.connect()
+    try:
+        return conn.execute(
+            "SELECT revisions.* FROM revisions "
+            "JOIN content ON content.id = revisions.content_id "
+            "WHERE revisions.content_id = ? AND content.kind = ? AND revisions.version = ?",
+            (content_id, kind, version),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def list_revisions(content_id: int, kind: str) -> list[sqlite3.Row]:
+    """An item's revisions, newest first, with who saved each one."""
+    conn = db_module.connect()
+    try:
+        return conn.execute(
+            "SELECT revisions.*, users.email AS saved_by_email FROM revisions "
+            "JOIN content ON content.id = revisions.content_id "
+            "JOIN users ON users.id = revisions.saved_by "
+            "WHERE revisions.content_id = ? AND content.kind = ? "
+            "ORDER BY revisions.version DESC",
+            (content_id, kind),
+        ).fetchall()
     finally:
         conn.close()
 
@@ -159,7 +210,9 @@ def set_status(content_id: int, kind: str, status: str) -> None:
 def delete_content(content_id: int, kind: str) -> None:
     conn = db_module.connect()
     try:
-        conn.execute("DELETE FROM content WHERE id = ? AND kind = ?", (content_id, kind))
+        cur = conn.execute("DELETE FROM content WHERE id = ? AND kind = ?", (content_id, kind))
+        if cur.rowcount:
+            conn.execute("DELETE FROM revisions WHERE content_id = ?", (content_id,))
         conn.commit()
     finally:
         conn.close()

@@ -267,6 +267,7 @@ select { padding-right: 2rem; }
 .badge--published { background: var(--success-soft); color: var(--success); }
 .badge--draft { background: var(--draft-soft); color: var(--draft); }
 .badge--admin { background: var(--accent-soft); color: var(--accent); }
+.badge--current { background: var(--accent-soft); color: var(--accent); }
 
 /* ---- Lists of content and users --------------------------------------- */
 .content-list {
@@ -291,6 +292,26 @@ select { padding-right: 2rem; }
 .content-list__actions { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
 .content-list__actions form { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; }
 .content-list__actions select { padding-block: 0.4rem; }
+
+/* ---- Revision history (editor screen) --------------------------------- */
+.revisions { margin-top: 1.5rem; }
+.revisions h2 { margin-top: 0; }
+.revision-list { list-style: none; margin: 0; padding: 0; }
+.revision {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.6rem 1rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.revision:last-child { border-bottom: 0; }
+.revision__main { flex: 1 1 14rem; min-width: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+.revision__title { font-weight: 650; overflow-wrap: anywhere; }
+.revision__meta { color: var(--muted); font-size: 0.88rem; display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; overflow-wrap: anywhere; }
+.revision__body summary { cursor: pointer; color: var(--muted); font-size: 0.88rem; }
+.revision__body pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0.5rem 0 0; }
+form.revision__rollback { margin: 0; }
 
 .content-filters {
   display: flex;
