@@ -1,6 +1,6 @@
 # CONTEXT.md glossary
 
-A small, WordPress-style web CMS: a local admin console where Editors and Admins manage content, and a static public site that publishes it. The content model is intentionally generic — built with no specific client in mind. A specific client site will be built *using* this CMS later. The CMS will be built for the Upper Arlington High School's Computer Science Honor Society chapter (UAHS CSHS), specifically for Dr. Diane Kahle (faculty advisor). The chapter needs a website to promote computer science among UAHS students.
+A small, WordPress-style web CMS: a local admin console where Editors and Admins manage content, and a static public site that publishes it. The content model is intentionally generic — built with no specific client in mind. A specific client site has been built *using* this CMS. The site was created for the Upper Arlington High School's Computer Science Honor Society chapter (UAHS CSHS), specifically for Dr. Diane Kahle (faculty advisor). The chapter needs a website to promote computer science among UAHS students.
 
 ## Roles
 
@@ -19,7 +19,7 @@ A dated, feed-like content item with a title, slug, Markdown body, draft/publish
 _Avoid_: article, entry
 
 **Page**:
-A static, evergreen content item — same fields and operations as a Post, plus appearing in the public site's navigation once published. Client-specific website will include Latest Posts, offered computer science coursework, contact us, about us (mission + why join + eligibility + requirements + awards).
+A static, evergreen content item — same fields and operations as a Post, plus appearing in the public site's navigation once published. The UAHS-CSHS website includes The Latest Posts, Coursework, Contact Us, About Us (mission + why join + eligibility + requirements + questions).
 _Avoid_: static page (redundant)
 
 **Slug**:

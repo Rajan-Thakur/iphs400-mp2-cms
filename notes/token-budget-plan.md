@@ -43,4 +43,3 @@ In order:
 4. Only as a last resort: a core ticket itself (e.g. T08's admin console),
    accepting the direct C5 point loss rather than missing the deadline
    entirely.
-</content>
