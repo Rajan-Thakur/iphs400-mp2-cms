@@ -6,6 +6,8 @@ render_site() to write one file per published item. Two rules the rubric checks:
   1. Only PUBLISHED content is written here. A draft that reaches site/ is a bug.
   2. Every href and src is RELATIVE ("style.css", "posts/x.html"), never
      root-absolute ("/style.css"), because Pages serves this from a subfolder.
+     That includes links written in a body: render_markdown(..., to_root=...)
+     rewrites "/contact-us.html" for the file it lands in.
 """
 from __future__ import annotations
 
@@ -76,7 +78,8 @@ def page_html(page) -> str:
 def _detail_html(template_name: str, item_key: str, item, *, prefix: str) -> str:
     return environment().get_template(template_name).render(
         title=item["title"], site_title=settings.SITE_TITLE,
-        **{item_key: item}, date=_date(item), body_html=render_markdown(item["body_md"]),
+        **{item_key: item}, date=_date(item),
+        body_html=render_markdown(item["body_md"], to_root=prefix),
         css_path=f"{prefix}style.css", home_path=f"{prefix}index.html",
         nav_items=nav_items(prefix=prefix),
     )

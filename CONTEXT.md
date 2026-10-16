@@ -39,7 +39,7 @@ The admin-only action that flips a content item's status from Draft to Published
 _Avoid_: approve (there's no separate approval workflow — publish is a single, direct action)
 
 **Static export**:
-The `site/` directory `cms publish` generates from currently-published content only; what `cms deploy` pushes to GitHub Pages.
+The `site/` directory `cms publish` generates from currently-published content only; what `cms deploy` pushes to GitHub Pages. Every link in it is relative. A link written in a body from the site root (`/contact-us.html`) is rewritten relative to the file it lands in (`./contact-us.html`, or `../contact-us.html` from a Post), since GitHub Pages serves the site from a subfolder. The admin preview keeps it as written.
 
 **Revision**:
 One saved version of a Post or Page: its title, slug, and body, who saved it, and when, numbered 1, 2, 3… within that item. Every create, edit, and Roll back records one; Publish and unpublish do not, since they change Status, not content.
