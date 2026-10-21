@@ -1,5 +1,8 @@
-/* One stylesheet for the admin console and the exported public site.
-   Plain CSS, no external fonts or assets, so the export stays self-contained. */
+/* Indigo on cool grey, light or dark to match the reader's device.
+   The default Theme (see CONTEXT.md): one complete stylesheet for the admin
+   console and the exported public site. Plain CSS, no external fonts or
+   assets, so the export stays self-contained. app/themes/chapter/style.css
+   has the same layout, so a layout fix here belongs there too. */
 
 :root {
   color-scheme: light dark;
@@ -312,6 +315,26 @@ select { padding-right: 2rem; }
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
   font-size: 0.88rem;
 }
+
+/* ---- Settings (Admins) ------------------------------------------------- */
+.settings-form fieldset { border: 0; margin: 0 0 1rem; padding: 0; min-width: 0; }
+.settings-form legend { font-weight: 650; font-size: 1.1rem; padding: 0; margin-bottom: 0.35rem; }
+.settings-form__hint { color: var(--muted); font-size: 0.93rem; }
+.theme-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.theme-option:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.theme-option input { flex: none; margin: 0.3rem 0 0; padding: 0; accent-color: var(--accent); }
+.theme-option__text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.theme-option__name { font-weight: 650; text-transform: capitalize; }
+.theme-option__description { color: var(--muted); font-size: 0.9rem; }
 
 /* ---- Schedule (editor screen, Admins) ---------------------------------- */
 .schedule { margin-top: 1.5rem; }

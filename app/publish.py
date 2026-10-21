@@ -19,10 +19,9 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app import content as content_module
 from app import settings
+from app import theme as theme_module
 from app.mdrender import render_markdown, render_text
 
-# One stylesheet for the public site and the admin console (served at /style.css).
-CSS = Path(__file__).with_name("style.css").read_text(encoding="utf-8")
 # search.html's one script, which searches site/search-index.json.
 SEARCH_JS = Path(__file__).with_name("search.js").read_text(encoding="utf-8")
 
@@ -136,7 +135,9 @@ def render_site(out: Path | None = None) -> Path:
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
-    _write(out / "style.css", CSS)
+    # The selected Theme's file, byte for byte, under the one name every
+    # page links: switching themes changes the file, never the links.
+    shutil.copyfile(theme_module.stylesheet(), out / "style.css")
     _write(out / "index.html", home_html())
     _write(out / "search.html", search_html())
     _write(out / "search.js", SEARCH_JS)

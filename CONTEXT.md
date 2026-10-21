@@ -81,3 +81,13 @@ _Avoid_: search database
 **Excerpt**:
 The start of a Post's or Page's body as plain text, 160 characters or fewer, cut at a word and ended with "…" when there is more. Search results show it under the title.
 _Avoid_: summary, snippet (a Snippet is the Media library's Markdown)
+
+## Look
+
+**Theme**:
+One complete stylesheet, `app/themes/<name>/style.css`, that sets how both the admin console and the public site look: colours, type, corners. It never changes content or links. The CMS has two, `default` (indigo on cool grey) and `chapter` (black and gold), with `default` used until an Admin picks another. The dev server serves the selected Theme as `style.css` from the next page load; `cms publish` copies it byte for byte into the Static export as `site/style.css`, the file every page already links.
+_Avoid_: skin, template (a template is a page's HTML)
+
+**Settings page**:
+The admin-only screen at `/admin/settings` where an Admin picks the Theme. What it saves is a row in the database's `settings` table, so it survives a restart. Unlike the configuration in `.env` (`app/settings.py`), it changes while the CMS runs.
+_Avoid_: preferences, config (config is `.env`)
