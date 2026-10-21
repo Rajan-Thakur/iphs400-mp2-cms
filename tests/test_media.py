@@ -8,12 +8,14 @@ acceptance step on #21 it checks.
 """
 from __future__ import annotations
 
+import builtins
 import re
 import shutil
 import struct
 import subprocess
 import zlib
 from html import unescape
+from pathlib import Path
 from urllib.parse import urljoin, urlsplit
 
 import pytest
@@ -119,6 +121,19 @@ def test_step2_empty_alt_text_is_refused_with_a_message(client_as, media_dir, al
     assert not media_dir.exists() or not any(media_dir.iterdir())
 
 
+@pytest.mark.parametrize("alt", [
+    "​", "⁠﻿", "­", "ㅤ", "⠀", "​ ​",
+], ids=["zero-width-space", "word-joiner-and-bom", "soft-hyphen", "hangul-filler",
+        "braille-blank", "spaced-zero-width"])
+def test_step2_alt_text_with_nothing_visible_is_refused(client_as, media_dir, alt):
+    """A screen reader reads these as nothing, the same as empty alt text."""
+    refused = _upload(client_as("editor"), "square.png", PNG, alt=alt)
+
+    assert refused.status_code == 400
+    assert "Add alt text" in refused.text
+    assert not media_dir.exists() or not any(media_dir.iterdir())
+
+
 # -- Step 3: wrong type (by extension or by first bytes) or over 2 MB is refused --
 
 TWO_MB = 2 * 1024 * 1024
@@ -176,6 +191,38 @@ def test_step4_a_folder_in_the_filename_cannot_escape_media(client_as, media_dir
     assert not (tmp_path.parent / "escape.png").exists()
 
 
+def test_step4_a_write_that_fails_leaves_no_partial_file(client_as, media_dir, monkeypatch):
+    """A full disk: the new file in media/ is created, then writing to it
+    fails part way. Nothing half-written may stay behind to be published."""
+    real_open = builtins.open
+
+    class FullDisk:
+        def __init__(self, file):
+            self.file = file
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc_info):
+            self.file.close()
+
+        def write(self, data):
+            self.file.write(data[:10])
+            raise OSError(28, "No space left on device")
+
+    def open_on_a_full_disk(path, mode="r", *args, **kwargs):
+        file = real_open(path, mode, *args, **kwargs)
+        writing_media = Path(path).parent == media_dir and ("w" in mode or "x" in mode)
+        return FullDisk(file) if writing_media else file
+
+    editor = client_as("editor")
+    monkeypatch.setattr(builtins, "open", open_on_a_full_disk)
+
+    with pytest.raises(OSError, match="No space left"):
+        _upload(editor, "square.png", PNG)
+    assert list(media_dir.iterdir()) == []
+
+
 def test_step4_a_second_image_with_the_same_name_keeps_both(client_as, media_dir):
     client = client_as("editor")
     _upload(client, "square.png", PNG, alt="First square")
@@ -222,6 +269,7 @@ def _img_alts(html: str) -> list[str]:
 
 @pytest.mark.parametrize("alt", [
     "team_photo", "5 * 3", "Team [photo]", "R & D", "Tom's \"best\" photo", "a > b", "café",
+    "部室の写真",
 ])
 def test_step5_alt_text_markdown_leaves_alone_reaches_the_post_as_typed(client_as, alt):
     editor = client_as("editor")
@@ -244,6 +292,19 @@ def test_step5_alt_text_that_markdown_would_change_is_refused(client_as, media_d
     assert refused.status_code == 400
     assert "Markdown would change" in unescape(refused.text)
     assert not media_dir.exists() or not any(media_dir.iterdir())
+
+
+def _error(html: str) -> str:
+    match = re.search(r'<p class="error">(.*?)</p>', html, re.DOTALL)
+    assert match, "no error message on the page"
+    return unescape(match.group(1))
+
+
+def test_step5_the_refusal_names_a_backslash_when_it_refuses_one(client_as):
+    refused = _upload(client_as("editor"), "square.png", PNG, alt=r"C:\pics screenshot")
+
+    assert refused.status_code == 400
+    assert "\\" in _error(refused.text)
 
 
 # -- Step 6: the upload form carries a CSRF token; a POST without it is refused --

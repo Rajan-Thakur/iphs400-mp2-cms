@@ -8,6 +8,7 @@ from __future__ import annotations
 import itertools
 import re
 import sqlite3
+import unicodedata
 from html import unescape
 from pathlib import Path, PurePosixPath
 
@@ -25,6 +26,9 @@ SIGNATURES = {
     ".jpeg": ("JPEG", b"\xff\xd8\xff"),
 }
 
+# Hangul fillers: letters to Unicode, but they show (and read as) nothing.
+INVISIBLE_LETTERS = {"ᅟ", "ᅠ", "ㅤ", "ﾠ"}
+
 
 class UploadRefused(ValueError):
     """An upload that breaks one of the library's rules; the message says
@@ -41,13 +45,20 @@ def clean_alt_text(raw: str) -> str:
     UploadRefused if nothing is left, or if a Post would show different
     alt text once the item's snippet is pasted in."""
     alt = " ".join(raw.split())
-    if not alt:
+    if not _has_words(alt):
         raise UploadRefused("Add alt text: a short description of the image for "
                             "someone who can't see it.")
     if _published_alt(alt) != alt:
         raise UploadRefused("Markdown would change this alt text in a post: it reads some "
-                            "uses of * _ ` [ ] < & as formatting. Reword it without them.")
+                            "uses of * _ ` [ ] < & \\ as formatting. Reword it without them.")
     return alt
+
+
+def _has_words(text: str) -> bool:
+    """Whether `text` has a letter or digit a screen reader would read out.
+    Zero-width and other invisible characters alone count as empty."""
+    return any(unicodedata.category(character)[0] in "LN"
+               and character not in INVISIBLE_LETTERS for character in text)
 
 
 def _published_alt(alt: str) -> str | None:
@@ -97,10 +108,15 @@ def _create_file(conn: sqlite3.Connection, filename: str, extension: str, data: 
         if path.name in taken:
             continue
         try:
-            with open(path, "xb") as file:
-                file.write(data)
+            file = open(path, "xb")
         except FileExistsError:
             continue
+        try:
+            with file:
+                file.write(data)
+        except BaseException:
+            path.unlink()  # this upload's own, half-written: never publish it
+            raise
         return path
 
 

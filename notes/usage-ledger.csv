@@ -76,3 +76,14 @@ ts,session,phase,provider,model,effort,ctx_pct,five_h_pct,weekly_pct
 2026-10-16T07:46:21Z,1055f71e,revise,anthropic,Opus 5.5,xhigh,22.0,46,6
 2026-10-16T08:01:18Z,1055f71e,revise,anthropic,Opus 5.5,xhigh,23.0,46,6
 2026-10-16T08:05:11Z,1055f71e,revise,anthropic,Opus 5.5,xhigh,23.0,47,6
+2026-10-21T00:25:01Z,41d3c5ec,revise,anthropic,Opus 5.5,xhigh,13.0,6,7
+2026-10-21T00:39:32Z,41d3c5ec,revise,anthropic,Opus 5.5,xhigh,13.0,7,7
+2026-10-21T00:48:40Z,41d3c5ec,revise,anthropic,Opus 5.5,xhigh,15.0,8,7
+2026-10-21T01:00:57Z,41d3c5ec,revise,anthropic,Opus 5.5,xhigh,15.0,8,7
+2026-10-21T01:09:10Z,41d3c5ec,revise,anthropic,Opus 5.5,xhigh,15.0,9,8
+2026-10-21T01:23:22Z,46a8d74b,revise,anthropic,Opus 5.5,xhigh,7.0,10,8
+2026-10-21T02:43:46Z,39a0ae77,T21,anthropic,Opus 5.5,xhigh,26.0,27,10
+2026-10-21T02:47:10Z,39a0ae77,T21,anthropic,Opus 5.5,xhigh,26.0,34,11
+2026-10-21T02:53:52Z,39a0ae77,T21,anthropic,Opus 5.5,xhigh,31.0,40,12
+2026-10-21T03:34:35Z,39a0ae77,T21,anthropic,Opus 5.5,xhigh,33.0,51,13
+2026-10-21T03:37:54Z,39a0ae77,T21,anthropic,Opus 5.5,xhigh,33.0,51,13
