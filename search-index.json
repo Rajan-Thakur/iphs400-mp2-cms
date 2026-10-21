@@ -1,0 +1,27 @@
+[
+ {
+  "title": "Welcome to the Computer Science Honor Society!",
+  "url": "posts/welcome.html",
+  "excerpt": "New website! We are glad to announce that we have a new website! The CSHS at Upper Arlington High School aims to promote computer science among students both…"
+ },
+ {
+  "title": "Hour of Code for October!",
+  "url": "posts/hour-of-code.html",
+  "excerpt": "Happy hour of code! Are you interested in computer science? Do you like teaching? If you answered yes on both of those, then hour of code is for you! Each year…"
+ },
+ {
+  "title": "Coursework",
+  "url": "coursework.html",
+  "excerpt": "The high school offers 7 CS courses: App Development Introduction to Python Programming Web Programming Tech Assistant (Help Desk) AP Computer Science…"
+ },
+ {
+  "title": "Contact Us",
+  "url": "contact-us.html",
+  "excerpt": "Did you know that CS course enrollment at the high school is rising rapidly? If you're a student at the Upper Arlington High School and you're interested in…"
+ },
+ {
+  "title": "About",
+  "url": "about.html",
+  "excerpt": "Computer Science is fun Our goal is to make Computer Science an exciting opportunity for you to pursue and learn more about in a fun way, in a world where…"
+ }
+]

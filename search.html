@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="site">
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="index.html"><span class="brand__mark" aria-hidden="true">✦</span>UAHS CSHS</a>
+      
+        
+          <nav class="site-nav" aria-label="Pages">
+            <a href="coursework.html">Coursework</a><a href="contact-us.html">Contact Us</a><a href="about.html">About</a>
+          </nav>
+        
+      
+    </div>
+  </header>
+  <main>
+  <div class="hero">
+    <h1>Search</h1>
+    <p class="lede">Find a post or page by a word from its title or its first few lines.</p>
+  </div>
+  <div class="search" role="search">
+    <label for="search-input">Search words</label>
+    <input id="search-input" type="search" spellcheck="false">
+  </div>
+  <p id="search-status" class="search-status" role="status"></p>
+  <ul id="search-results" class="post-feed"></ul>
+  <noscript><p class="empty">Search needs JavaScript turned on.</p></noscript>
+  <script src="search.js"></script>
+</main>
+  <footer class="site-footer"><small>IPHS 400 Mini-Project #2</small></footer>
+</body>
+</html>
