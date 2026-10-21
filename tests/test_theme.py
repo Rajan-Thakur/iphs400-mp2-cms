@@ -14,11 +14,14 @@ acceptance step it checks:
 """
 from __future__ import annotations
 
+import functools
+import http.server
 import os
 import re
 import shutil
 import subprocess
 import sys
+import threading
 from pathlib import Path
 
 import pytest
@@ -78,7 +81,9 @@ def _classes(name: str) -> set[str]:
 
 def test_step1_each_theme_styles_every_class_the_other_does():
     # The whole admin console follows the theme too, so a class one theme
-    # forgets is an unstyled screen.
+    # forgets is an unstyled screen. This compares class names only: a
+    # layout value changed in one file and not the other still passes, so
+    # the step 5 tests below check the layout itself at 390 px.
     assert {"admin-nav", "post-card", "theme-option"} <= _classes("default")
     assert _classes("chapter") == _classes("default")
 
@@ -253,9 +258,42 @@ def test_step4_switching_back_and_publishing_again_restores_the_first_theme(
 # -- Step 5: both themes show no horizontal overflow at 390 px on the home
 #    page and one post (in Chromium; skipped without it) --
 
+class _QuietHandler(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, *args):
+        pass
+
+
+@pytest.fixture
+def exported_site_url(tmp_path):
+    """tmp_path/site, where _publish writes the export, served over HTTP as
+    `python -m http.server -d site` serves it. Yields its base URL."""
+    handler = functools.partial(_QuietHandler, directory=str(tmp_path / "site"))
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{server.server_address[1]}"
+    server.shutdown()
+    server.server_close()
+
+
+@pytest.mark.parametrize("name", ["default", "chapter"])
+@pytest.mark.parametrize("path", ["index.html", "posts/wide-post.html"], ids=["home", "post"])
+def test_step5_the_published_site_fits_a_390px_phone(
+    client_as, awkward_content, phone, exported_site_url, monkeypatch, tmp_path, name, path,
+):
+    _choose_theme(client_as("admin"), name)
+    _publish(monkeypatch, tmp_path)
+
+    phone.goto(f"{exported_site_url}/{path}")
+
+    assert _body_background(phone) == PAGE_BACKGROUND[name]
+    assert_fits_phone(phone)
+
+
 @pytest.mark.parametrize("name", ["default", "chapter"])
 @pytest.mark.parametrize("path", ["/", "/posts/wide-post.html"], ids=["home", "post"])
-def test_step5_the_theme_fits_a_390px_phone(client_as, awkward_content, phone, name, path):
+def test_step5_the_dev_server_preview_fits_a_390px_phone(
+    client_as, awkward_content, phone, name, path,
+):
     _choose_theme(client_as("admin"), name)
 
     phone.goto(path)

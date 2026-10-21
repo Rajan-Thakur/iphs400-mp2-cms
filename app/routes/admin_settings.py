@@ -1,7 +1,8 @@
 """The admin-only Settings page (MP2plus F8, issue #23): an Admin picks the
 site's Theme. The choice is stored in the database, so it survives a
 restart; the admin console shows it on the next page load, and the public
-site gets it on the next `cms publish`.
+site gets it on the next `cms publish`. (Not to be confused with
+app/settings.py, the configuration read from .env.)
 """
 from __future__ import annotations
 
