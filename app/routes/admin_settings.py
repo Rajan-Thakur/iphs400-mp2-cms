@@ -7,14 +7,12 @@ app/settings.py, the configuration read from .env.)
 """
 from __future__ import annotations
 
-import sqlite3
-
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 
 from app import security
 from app import theme as theme_module
-from app.guards import require_admin
+from app.guards import admin_only
 from app.templating import templates
 
 router = APIRouter(prefix="/admin/settings")
@@ -23,8 +21,7 @@ CSRF_EXPIRED_MESSAGE = "Your session expired — please try again."
 UNKNOWN_THEME_MESSAGE = "Pick one of the themes listed."
 
 
-def _require_admin_for_settings(request: Request) -> sqlite3.Row:
-    return require_admin(request, detail="Only an Admin can change the site's settings.")
+_require_admin_for_settings = admin_only("Only an Admin can change the site's settings.")
 
 
 def _render(request, user, *, saved=None, error=None, status_code=200):

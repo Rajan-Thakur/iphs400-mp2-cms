@@ -13,7 +13,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app import content as content_module
 from app import security
-from app.guards import require_admin, require_editor_or_admin
+from app.guards import admin_only, require_editor_or_admin
 from app.mdrender import render_markdown
 from app.templating import is_to_root, templates, to_root_from
 
@@ -32,11 +32,8 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
         f"Only an Admin can schedule a {label} — ask an Admin to do this for you."
     )
 
-    def _require_admin_to_publish(request: Request):
-        return require_admin(request, detail=publish_detail)
-
-    def _require_admin_to_schedule(request: Request):
-        return require_admin(request, detail=schedule_detail)
+    _require_admin_to_publish = admin_only(publish_detail)
+    _require_admin_to_schedule = admin_only(schedule_detail)
 
     def _render_form(request, user, *, item, title, slug, body_md, error, status_code=200):
         csrf_token, new_cookie = security.read_or_mint_csrf(request)

@@ -67,3 +67,15 @@ def require_admin(request: Request, detail: str | None = None) -> sqlite3.Row:
     """`detail` lets a specific route explain the actual reason for the 403
     (e.g. "only an Admin can publish") instead of the generic role message."""
     return _require_role(require_login(request), {"admin"}, detail=detail)
+
+
+def admin_only(detail: str):
+    """The dependency every admin-only route uses: require_admin with this
+    route's own refusal message. It is tagged `admin_only`, so a walk over
+    the router (tests/test_access_matrix.py) can find every such route.
+    (`Depends(require_admin)` alone would make `detail` a query parameter.)"""
+    def dependency(request: Request) -> sqlite3.Row:
+        return require_admin(request, detail=detail)
+
+    dependency.admin_only = True
+    return dependency

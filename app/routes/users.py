@@ -1,6 +1,6 @@
 """Admin-only user management: create an account, change a role, deactivate
-(ticket T06). Every route uses T02's require_admin guard with a specific
-reason, so an Editor gets the "Access denied" page (403) explaining that only
+(ticket T06). Every route uses the admin_only guard (app/guards.py) with a
+specific reason, so an Editor gets the "Access denied" page (403) explaining that only
 an Admin can manage users.
 """
 from __future__ import annotations
@@ -12,7 +12,7 @@ from fastapi.responses import RedirectResponse
 
 from app import security
 from app import users as users_module
-from app.guards import require_admin
+from app.guards import admin_only
 from app.templating import templates
 
 router = APIRouter(prefix="/admin/users")
@@ -55,9 +55,8 @@ def _csrf_error_new_form(request, user, *, form_email, form_role):
     )
 
 
-def _require_admin_for_users(request: Request) -> sqlite3.Row:
-    return require_admin(request, detail="Only an Admin can manage users — "
-                                         "ask an Admin if an account needs changing.")
+_require_admin_for_users = admin_only("Only an Admin can manage users — "
+                                      "ask an Admin if an account needs changing.")
 
 
 def _validate_role(role: str) -> str | None:
