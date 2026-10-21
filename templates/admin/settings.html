@@ -3,7 +3,7 @@
   <div class="page-head">
     <h1>Settings</h1>
   </div>
-  {% if saved == "theme" %}<p class="success">Theme saved. The public site changes on the next <code>cms publish</code>.</p>{% endif %}
+  {% if saved == "theme" %}<p class="success">Theme saved. The exported site changes on the next <code>cms publish</code>, and the live site after <code>cms deploy</code>.</p>{% endif %}
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
   <form method="post" action="{{ to_root }}admin/settings" class="card settings-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">

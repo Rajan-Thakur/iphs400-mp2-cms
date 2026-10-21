@@ -27,6 +27,7 @@ from pathlib import Path
 import pytest
 
 from app import cli, settings
+from app import db as db_module
 from app import theme as theme_module
 from tests.conftest import extract_csrf, log_in
 from tests.test_phone_width import assert_fits_phone
@@ -70,7 +71,8 @@ def test_step1_two_themes_each_one_css_file_in_its_own_folder():
 
     assert [folder.name for folder in folders] == ["chapter", "default"]
     for folder in folders:
-        assert [file.name for file in folder.iterdir()] == ["style.css"], folder
+        # CSS files only: Finder's .DS_Store or Explorer's desktop.ini isn't a stylesheet.
+        assert [file.name for file in folder.glob("*.css")] == ["style.css"], folder
 
 
 def _classes(name: str) -> set[str]:
@@ -112,7 +114,25 @@ def test_step2_the_console_and_the_preview_load_the_chosen_theme(client_as):
 
     response = admin.get("/style.css")
     assert response.headers["content-type"].startswith("text/css")
+    # One URL, different bytes after a switch: browsers must ask again.
+    assert response.headers["cache-control"] == "no-cache"
     assert response.content == _theme_file("chapter")
+
+
+def test_step2_a_database_without_the_settings_table_still_gets_a_stylesheet(client_as):
+    # As when a backup from before this table existed is copied over cms.db
+    # while the server runs: the server set up that path once already.
+    admin = client_as("admin")
+    conn = db_module.connect()
+    try:
+        conn.execute("DROP TABLE settings")
+    finally:
+        conn.close()
+
+    response = admin.get("/style.css")
+
+    assert response.status_code == 200
+    assert response.content == _theme_file("default")
 
 
 # A server started afresh: a new Python process on the same database, so
@@ -237,6 +257,20 @@ def test_step3_a_chosen_theme_that_is_later_removed_falls_back_to_the_default(
     assert admin.get("/style.css").content == _theme_file("default")
     assert (_publish(monkeypatch, tmp_path) / "style.css").read_bytes() == _theme_file("default")
     assert _theme_options(admin.get("/admin/settings").text) == {"default": True}
+
+
+def test_step3_a_publish_that_cannot_read_the_theme_leaves_the_last_export_whole(
+    monkeypatch, tmp_path,
+):
+    site = _publish(monkeypatch, tmp_path)
+    monkeypatch.setattr(theme_module, "THEMES_DIR", tmp_path / "no-themes")
+
+    with pytest.raises(FileNotFoundError):
+        cli.main(["publish"])
+
+    # Not an empty site/ that `cms deploy` would push.
+    assert (site / "index.html").is_file()
+    assert (site / "style.css").read_bytes() == _theme_file("default")
 
 
 # -- Step 4: switching back and publishing again restores the first theme's CSS --

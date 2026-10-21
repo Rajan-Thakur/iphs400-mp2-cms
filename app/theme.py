@@ -8,6 +8,7 @@ reaches the next page load and the next `cms publish` with no restart.
 from __future__ import annotations
 
 import re
+import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -31,6 +32,10 @@ class Theme:
     description: str
 
 
+def _file(name: str) -> Path:
+    return THEMES_DIR / name / "style.css"
+
+
 def names() -> list[str]:
     """Every theme's name, the default first, then A to Z."""
     found = [path.parent.name for path in THEMES_DIR.glob("*/style.css")]
@@ -41,7 +46,7 @@ def available() -> list[Theme]:
     """Every theme, in names() order, for the Settings page."""
     themes = []
     for name in names():
-        match = DESCRIPTION_RE.match(stylesheet(name).read_text(encoding="utf-8"))
+        match = DESCRIPTION_RE.match(_file(name).read_text(encoding="utf-8"))
         themes.append(Theme(name, match.group(1) if match else ""))
     return themes
 
@@ -53,6 +58,10 @@ def selected() -> str:
     try:
         row = conn.execute("SELECT value FROM settings WHERE key = ?",
                            (SETTING_KEY,)).fetchone()
+    except sqlite3.OperationalError:
+        # No settings table: a backup from before it existed, copied over
+        # the database while the server runs. Every page still gets styled.
+        row = None
     finally:
         conn.close()
     return row["value"] if row and row["value"] in names() else DEFAULT_THEME
@@ -75,7 +84,7 @@ def select(name: str) -> None:
         conn.close()
 
 
-def stylesheet(name: str | None = None) -> Path:
-    """The style.css file of theme `name`, or of the selected theme. Callers
-    copy its bytes as they are, so site/style.css matches the file exactly."""
-    return THEMES_DIR / (name or selected()) / "style.css"
+def stylesheet() -> Path:
+    """The selected theme's style.css. Callers copy its bytes as they are,
+    so site/style.css matches the file exactly."""
+    return _file(selected())

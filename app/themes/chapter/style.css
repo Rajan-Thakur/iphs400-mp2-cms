@@ -17,7 +17,6 @@
   --accent: #8a6300;
   --accent-hover: #6b4d00;
   --accent-soft: #fbf0d0;
-  --on-accent: #ffffff;
   /* The top bar and the buttons: gold on black, black on gold. */
   --gold: #f2b705;
   --gold-hover: #d9a404;
@@ -51,7 +50,6 @@
     --accent: #f2c230;
     --accent-hover: #ffd65c;
     --accent-soft: #2f270d;
-    --on-accent: #0e0d0b;
     --ink: #000000;
     --ink-raised: #1f1d19;
     --danger: #f07a70;

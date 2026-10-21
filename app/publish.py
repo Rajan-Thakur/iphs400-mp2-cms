@@ -132,12 +132,14 @@ def _write(path: Path, text: str) -> None:
 
 def render_site(out: Path | None = None) -> Path:
     out = out or settings.SITE
+    # The selected Theme's file, byte for byte, under the one name every
+    # page links: switching themes changes the file, never the links. Read
+    # before site/ is cleared, so a failure here leaves the last export whole.
+    css = theme_module.stylesheet().read_bytes()
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
-    # The selected Theme's file, byte for byte, under the one name every
-    # page links: switching themes changes the file, never the links.
-    shutil.copyfile(theme_module.stylesheet(), out / "style.css")
+    (out / "style.css").write_bytes(css)
     _write(out / "index.html", home_html())
     _write(out / "search.html", search_html())
     _write(out / "search.js", SEARCH_JS)

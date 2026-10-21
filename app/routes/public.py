@@ -29,7 +29,9 @@ def home():
 def style_css():
     # The selected Theme, read per request: a switch on the Settings page
     # shows on the next page load. The admin console links this file too.
-    return Response(theme_module.stylesheet().read_bytes(), media_type="text/css")
+    # no-cache: the same URL serves new bytes after a switch.
+    return Response(theme_module.stylesheet().read_bytes(), media_type="text/css",
+                    headers={"Cache-Control": "no-cache"})
 
 
 @router.get("/search.html", response_class=HTMLResponse)
