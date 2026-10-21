@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="hero">
+    <h1>Search</h1>
+    <p class="lede">Find a post or page by a word from its title or its first few lines.</p>
+  </div>
+  <div class="search" role="search">
+    <label for="search-input">Search words</label>
+    <input id="search-input" type="search" spellcheck="false">
+  </div>
+  <p id="search-status" class="search-status" role="status"></p>
+  <ul id="search-results" class="post-feed"></ul>
+  <noscript><p class="empty">Search needs JavaScript turned on.</p></noscript>
+  <script src="search.js"></script>
+{% endblock %}

@@ -29,7 +29,8 @@ TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 # A Page is exported to site/<slug>.html, so these slugs would overwrite a
 # file the export itself writes. Maps kind -> {slug: what it would clobber}.
-RESERVED_SLUGS = {"page": {"index": "the site's home page"}}
+RESERVED_SLUGS = {"page": {"index": "the site's home page",
+                           "search": "the site's search page"}}
 
 
 def reserved_slug_reason(kind: str, slug: str) -> str | None:

@@ -11,6 +11,7 @@ render_site() to write one file per published item. Two rules the rubric checks:
 """
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 
@@ -18,10 +19,15 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app import content as content_module
 from app import settings
-from app.mdrender import render_markdown
+from app.mdrender import render_markdown, render_text
 
 # One stylesheet for the public site and the admin console (served at /style.css).
 CSS = Path(__file__).with_name("style.css").read_text(encoding="utf-8")
+# search.html's one script, which searches site/search-index.json.
+SEARCH_JS = Path(__file__).with_name("search.js").read_text(encoding="utf-8")
+
+# The most characters of a body that search.html shows under a result's title.
+EXCERPT_LENGTH = 160
 
 
 def environment() -> Environment:
@@ -64,6 +70,40 @@ def home_html() -> str:
     )
 
 
+def search_html() -> str:
+    """The search page, as written to site/search.html; its script is
+    site/search.js."""
+    return environment().get_template("public/search.html").render(
+        title="Search", site_title=settings.SITE_TITLE,
+        css_path="style.css", home_path="index.html", nav_items=nav_items(),
+    )
+
+
+def search_index_json() -> str:
+    """site/search-index.json: the title, URL and a plain-text excerpt of
+    every published Post and Page, for search.html's script to search. Each
+    URL is relative to the site root, where search.html is."""
+    items = [(post, f"posts/{post['slug']}.html")
+             for post in content_module.list_published("post")]
+    items += [(page, f"{page['slug']}.html") for page in _exportable_pages()]
+    return json.dumps([
+        {"title": item["title"], "url": url, "excerpt": _excerpt(item["body_md"])}
+        for item, url in items
+    ], ensure_ascii=False, indent=1)
+
+
+def _excerpt(body_md: str) -> str:
+    """The start of a body as plain text, EXCERPT_LENGTH characters or fewer
+    with the "…" that ends it when anything was cut. The cut falls at a word
+    break, unless the text has none to fall at."""
+    text = render_text(body_md)
+    if len(text) <= EXCERPT_LENGTH:
+        return text
+    head = text[:EXCERPT_LENGTH]
+    cut = head.rsplit(" ", 1)[0] if " " in head else head[:-1]
+    return (cut.rstrip(" .,;:") or cut) + "…"
+
+
 def post_html(post) -> str:
     """A published Post, as written to site/posts/<slug>.html — one directory
     deep, so every shared link climbs a level."""
@@ -98,6 +138,9 @@ def render_site(out: Path | None = None) -> Path:
     out.mkdir(parents=True)
     _write(out / "style.css", CSS)
     _write(out / "index.html", home_html())
+    _write(out / "search.html", search_html())
+    _write(out / "search.js", SEARCH_JS)
+    _write(out / "search-index.json", search_index_json())
 
     posts_dir = out / "posts"
     posts_dir.mkdir()

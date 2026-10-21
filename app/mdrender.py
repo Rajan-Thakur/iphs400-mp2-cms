@@ -3,11 +3,14 @@ later static export (T07) both reuse, so a post can't render one way in the
 editor and another way once published. The one deliberate difference is a
 link to the site root, which the export makes relative (`to_root` below).
 Both make a Media library image (`media/<file>`) relative to the page it is
-shown on.
+shown on. `render_text` reads the same Markdown as plain text, for the
+search index's excerpts.
 """
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
+from html import unescape
 
 import nh3
 from markdown_it import MarkdownIt
@@ -18,6 +21,13 @@ _md = MarkdownIt("commonmark")
 # and control characters at either end, and tabs and newlines anywhere.
 _TRIMMED = "".join(chr(code) for code in range(0x21))
 _DROPPED = {ord("\t"): None, ord("\n"): None, ord("\r"): None}
+
+# Tags a browser breaks the line at. render_text puts a space before each, so
+# raw HTML like "<div>alpha</div><div>beta</div>" reads "alpha beta".
+_LINE_ENDING_TAG = re.compile(
+    r"<(?:br|hr|/?(?:p|div|li|dt|dd|h[1-6]|td|th|tr|table|ul|ol|dl|blockquote|pre))\b",
+    re.IGNORECASE,
+)
 
 
 def render_markdown(
@@ -43,6 +53,18 @@ def render_markdown(
     if media_root is not None:
         return nh3.clean(html, attribute_filter=_link_rewriter(media_root, root_links=False))
     return nh3.clean(html)
+
+
+def render_text(raw: str) -> str:
+    """The words of `raw` as a reader sees them on the page, with no markup:
+    every tag dropped (a <script> or <style> with its contents), entities
+    decoded, and whitespace runs collapsed to one space.
+
+    The result is plain text, not HTML: a body that shows `<img ...>` as code
+    gives those characters back. Show it with textContent or escape it."""
+    html = _LINE_ENDING_TAG.sub(lambda tag: " " + tag.group(0), _md.render(raw))
+    text = nh3.clean(html, tags=set())
+    return " ".join(unescape(text).split())
 
 
 def _link_rewriter(to_root: str, *, root_links: bool) -> Callable[[str, str, str], str]:
