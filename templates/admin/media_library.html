@@ -1,0 +1,59 @@
+{% extends "admin/base.html" %}
+{% block admin_content %}
+  <div class="page-head">
+    <h1>Media</h1>
+  </div>
+  {% if saved == "uploaded" %}<p class="success">Image uploaded. Copy its Markdown into a post.</p>{% endif %}
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <form method="post" action="{{ to_root }}admin/media/upload" enctype="multipart/form-data"
+        class="content-form card media-upload">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Image (PNG or JPEG, 2 MB or less)
+      <input type="file" name="image" accept=".png,.jpg,.jpeg,image/png,image/jpeg" required>
+    </label>
+    <label>Alt text
+      <input type="text" name="alt_text" value="{{ form_alt }}" aria-describedby="alt-hint">
+    </label>
+    <p id="alt-hint" class="media-upload__hint">Describe the image for someone who can't see it,
+      e.g. "Club members at the hackathon". A screen reader reads this aloud.</p>
+    <div class="form-actions">
+      <button type="submit">Upload</button>
+    </div>
+  </form>
+  {% if items %}
+    <ul class="content-list media-list">
+      {% for item in items %}
+        <li class="content-list__item media-item">
+          <img class="media-item__image" src="{{ to_root }}media/{{ item['filename'] }}" alt="{{ item['alt_text'] }}">
+          <div class="content-list__main">
+            <span class="content-list__title">{{ item["alt_text"] }}</span>
+            <span class="content-list__meta">{{ item["filename"] }} · {{ item["uploaded_by_email"] }} · {{ item["uploaded_at"] | utc_time }}</span>
+            <div class="media-item__copy">
+              <input type="text" class="media-item__snippet" readonly value="{{ item['snippet'] }}"
+                     aria-label="Markdown for a post: {{ item['alt_text'] }}">
+              <button type="button" class="button--secondary button--small" data-copy>Copy</button>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="empty">No images yet. Upload the first one above.</p>
+  {% endif %}
+  <script>
+    // Copy a snippet with one click. Focusing the field selects it, too,
+    // for Ctrl+C where the clipboard API isn't allowed.
+    document.querySelectorAll("button[data-copy]").forEach(function (button) {
+      var field = button.previousElementSibling;
+      field.addEventListener("focus", function () { field.select(); });
+      button.addEventListener("click", function () {
+        field.select();
+        var copied = navigator.clipboard ? navigator.clipboard.writeText(field.value)
+                                         : Promise.reject(new Error("no clipboard API"));
+        copied.then(function () { return true; },
+                    function () { return document.execCommand("copy"); })
+              .then(function (ok) { button.textContent = ok ? "Copied" : "Press Ctrl+C"; });
+      });
+    });
+  </script>
+{% endblock %}

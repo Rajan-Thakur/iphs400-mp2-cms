@@ -13,6 +13,7 @@
       <a href="{{ to_root }}admin/content" {% if path.startswith("/admin/content") %}aria-current="page"{% endif %}>All content</a>
       <a href="{{ to_root }}admin/posts" {% if path.startswith("/admin/posts") %}aria-current="page"{% endif %}>Posts</a>
       <a href="{{ to_root }}admin/pages" {% if path.startswith("/admin/pages") %}aria-current="page"{% endif %}>Pages</a>
+      <a href="{{ to_root }}admin/media" {% if path.startswith("/admin/media") %}aria-current="page"{% endif %}>Media</a>
       {% if current_user["role"] == "admin" %}
         <a href="{{ to_root }}admin/users" {% if path.startswith("/admin/users") %}aria-current="page"{% endif %}>Users</a>
       {% endif %}

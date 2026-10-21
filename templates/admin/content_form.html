@@ -97,6 +97,7 @@
         timer = setTimeout(function () {
           var body = new URLSearchParams();
           body.set("body_md", textarea.value);
+          body.set("to_root", "{{ to_root }}");  // places media/ images for this page
           fetch("{{ to_root }}{{ link_prefix }}/preview", { method: "POST", body: body })
             .then(function (response) {
               // An expired session redirects to /login; don't paste that page in.

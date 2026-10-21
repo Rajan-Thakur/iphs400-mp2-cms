@@ -298,6 +298,21 @@ select { padding-right: 2rem; }
 .content-list__actions form { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; }
 .content-list__actions select { padding-block: 0.4rem; }
 
+/* ---- Media library ----------------------------------------------------- */
+.media-upload { margin-bottom: 1.5rem; }
+.media-upload__hint { color: var(--muted); font-size: 0.88rem; margin-top: -0.5rem; }
+.media-item__image { flex: none; width: 5rem; height: 5rem; object-fit: cover; background: var(--surface-muted); }
+.media-item .content-list__main { flex-basis: 18rem; }  /* below the image on a phone */
+.media-item__copy { display: flex; gap: 0.4rem; margin-top: 0.3rem; }
+.media-item__copy button { flex: none; }
+.media-item__snippet {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-block: 0.4rem;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 0.88rem;
+}
+
 /* ---- Schedule (editor screen, Admins) ---------------------------------- */
 .schedule { margin-top: 1.5rem; }
 .schedule h2 { margin-top: 0; }

@@ -58,3 +58,16 @@ _Avoid_: auto-publish, publishing "automatically"
 
 **Scheduled**:
 A Draft with a publish time set. The dashboard and lists show it as "scheduled", apart from other Drafts. Publishing or unpublishing it by hand cancels its schedule.
+
+## Media
+
+**Media library**:
+The admin screen where Editors and Admins upload images for Posts (PNG or JPEG, 2 MB or less) and copy each one's Snippet. The files live in `media/`, which is git-ignored like the database; `cms publish` copies all of `media/` into the Static export.
+_Avoid_: gallery, uploads
+
+**Alt text**:
+The words that describe an image to someone who can't see it; a screen reader reads them aloud. Every upload needs it, and the Snippet carries it into the Post's `<img alt>`.
+_Avoid_: caption (a caption is shown to everyone)
+
+**Snippet**:
+The Markdown the Media library shows for each image, `![<Alt text>](media/<file>)`, ready to paste into a Post's body. `media/` is read from the site root, so the Static export rewrites it relative to the file it lands in (`../media/<file>` from a Post), and the editor's preview does the same for its own page.

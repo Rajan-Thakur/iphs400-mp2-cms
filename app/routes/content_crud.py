@@ -15,7 +15,7 @@ from app import content as content_module
 from app import security
 from app.guards import require_admin, require_editor_or_admin
 from app.mdrender import render_markdown
-from app.templating import templates
+from app.templating import is_to_root, templates, to_root_from
 
 LIST_TEMPLATE = "admin/content_list.html"
 FORM_TEMPLATE = "admin/content_form.html"
@@ -51,7 +51,7 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
                 "form_title": title,
                 "form_slug": slug,
                 "form_body_md": body_md,
-                "preview_html": render_markdown(body_md),
+                "preview_html": render_markdown(body_md, media_root=to_root_from(request.url.path)),
                 "revisions": content_module.list_revisions(item["id"], kind) if item else [],
                 "is_admin": user["role"] == "admin",
                 "error": error,
@@ -282,9 +282,16 @@ def build_content_router(*, kind: str, url_prefix: str, label: str, label_plural
         return RedirectResponse(f"{url_prefix}?saved=schedule-cancelled", status_code=303)
 
     @router.post("/preview")
-    def preview_item(body_md: str = Form(""), user=Depends(require_editor_or_admin)):
+    def preview_item(
+        body_md: str = Form(""), to_root: str | None = Form(None),
+        user=Depends(require_editor_or_admin),
+    ):
         """Render+sanitize arbitrary Markdown for the live preview pane. No
-        CSRF check: this has no side effect, it only echoes back sanitized HTML."""
-        return HTMLResponse(render_markdown(body_md))
+        CSRF check: this has no side effect, it only echoes back sanitized HTML.
+        `to_root` is the editor page's own (app/templating.py), so a media/
+        image resolves where the preview is shown. Anything but "../" steps
+        is ignored, so it can never put a scheme in front of a URL."""
+        media_root = to_root if to_root is not None and is_to_root(to_root) else None
+        return HTMLResponse(render_markdown(body_md, media_root=media_root))
 
     return router

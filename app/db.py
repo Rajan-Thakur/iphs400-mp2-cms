@@ -47,6 +47,16 @@ CREATE TABLE IF NOT EXISTS revisions (
     rolled_back_to INTEGER,
     UNIQUE (content_id, version)
 );
+
+-- One row per image in the Media library (see CONTEXT.md). The file itself
+-- is media/<filename>; the row keeps what the file can't: its Alt text.
+CREATE TABLE IF NOT EXISTS media (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    filename TEXT NOT NULL UNIQUE,
+    alt_text TEXT NOT NULL,
+    uploaded_by INTEGER NOT NULL REFERENCES users(id),
+    uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 """
 
 

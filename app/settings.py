@@ -13,6 +13,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATES = ROOT / "templates"
 SITE = ROOT / "site"
+# Uploaded images (git-ignored, like the database); `cms publish` copies them
+# into site/media/.
+MEDIA = ROOT / "media"
 
 
 def load_dotenv(path: Path) -> None:

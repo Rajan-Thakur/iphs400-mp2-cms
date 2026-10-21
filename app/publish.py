@@ -7,7 +7,7 @@ render_site() to write one file per published item. Two rules the rubric checks:
   2. Every href and src is RELATIVE ("style.css", "posts/x.html"), never
      root-absolute ("/style.css"), because Pages serves this from a subfolder.
      That includes links written in a body: render_markdown(..., to_root=...)
-     rewrites "/contact-us.html" for the file it lands in.
+     rewrites "/contact-us.html" and "media/logo.png" for the file it lands in.
 """
 from __future__ import annotations
 
@@ -105,5 +105,10 @@ def render_site(out: Path | None = None) -> Path:
         _write(posts_dir / f"{post['slug']}.html", post_html(post))
     for page in _exportable_pages():
         _write(out / f"{page['slug']}.html", page_html(page))
+
+    # Every file in media/ is meant to be public; Posts show them through
+    # their Media library snippets.
+    if settings.MEDIA.is_dir():
+        shutil.copytree(settings.MEDIA, out / "media")
 
     return out

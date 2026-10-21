@@ -10,7 +10,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 
 from app.guards import AccessDenied, NeedsLogin, render_access_denied
-from app.routes import auth, dashboard, pages, posts, public, users
+from app.routes import auth, dashboard, media, pages, posts, public, users
 
 
 def create_app() -> FastAPI:
@@ -20,6 +20,7 @@ def create_app() -> FastAPI:
     app.include_router(posts.router)
     app.include_router(pages.router)
     app.include_router(users.router)
+    app.include_router(media.router)
     app.include_router(public.router)  # last: its /{slug}.html matches broadly
 
     @app.exception_handler(NeedsLogin)

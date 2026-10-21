@@ -1,17 +1,33 @@
 """The one Jinja2Templates instance the admin console renders with."""
 from __future__ import annotations
 
+import re
+
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
 
 from app import settings
 
 
-def _relative_root(request: Request) -> dict[str, str]:
-    """`to_root`: the "../" steps from the current URL back to the server root,
-    so admin links are relative like the published site's, e.g.
+TO_ROOT_RE = re.compile(r"(?:\.\./)*")
+
+
+def to_root_from(path: str) -> str:
+    """`to_root`: the "../" steps from URL `path` back to the server root, so
+    admin links are relative like the published site's, e.g.
     /admin -> "", /admin/posts -> "../", /admin/posts/3/edit -> "../../../"."""
-    return {"to_root": "../" * max(request.url.path.count("/") - 1, 0)}
+    return "../" * max(path.count("/") - 1, 0)
+
+
+def is_to_root(value: str) -> bool:
+    """Whether `value` has the shape to_root_from() gives: only "../" steps.
+    A value sent back by a page is checked with this before it is used."""
+    return TO_ROOT_RE.fullmatch(value) is not None
+
+
+def _relative_root(request: Request) -> dict[str, str]:
+    """`to_root` for the current URL, in every admin template."""
+    return {"to_root": to_root_from(request.url.path)}
 
 
 def utc_time(stamp: str) -> str:
