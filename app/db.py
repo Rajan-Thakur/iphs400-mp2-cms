@@ -57,6 +57,15 @@ CREATE TABLE IF NOT EXISTS media (
     uploaded_by INTEGER NOT NULL REFERENCES users(id),
     uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- Choices an Admin makes on the Settings page (see CONTEXT.md), one row per
+-- setting, e.g. ('theme', 'chapter'). A missing row means the default.
+-- Unlike the configuration in .env (app/settings.py), these change while
+-- the CMS runs.
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 """
 
 

@@ -16,6 +16,7 @@
       <a href="{{ to_root }}admin/media" {% if path.startswith("/admin/media") %}aria-current="page"{% endif %}>Media</a>
       {% if current_user["role"] == "admin" %}
         <a href="{{ to_root }}admin/users" {% if path.startswith("/admin/users") %}aria-current="page"{% endif %}>Users</a>
+        <a href="{{ to_root }}admin/settings" {% if path.startswith("/admin/settings") %}aria-current="page"{% endif %}>Settings</a>
       {% endif %}
     {% endif %}
   </nav>

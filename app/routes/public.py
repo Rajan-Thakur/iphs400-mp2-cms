@@ -1,7 +1,8 @@
 """The public site, served live by the dev server at the same paths the static
-export writes (index.html, posts/<slug>.html, <slug>.html, and search.html with
-its search.js and search-index.json). Both render through app.publish, so the
-local preview and the deployed site can't drift.
+export writes (index.html, posts/<slug>.html, <slug>.html, search.html with
+its search.js and search-index.json, and style.css, the selected Theme). Both
+render through app.publish and app.theme, so the local preview and the
+deployed site can't drift.
 Only published content is ever served; a draft's URL is a 404.
 """
 from __future__ import annotations
@@ -10,8 +11,9 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse, Response
 
 from app import content as content_module
+from app import theme as theme_module
 from app.publish import (
-    CSS, SEARCH_JS, home_html, page_html, post_html, search_html, search_index_json,
+    SEARCH_JS, home_html, page_html, post_html, search_html, search_index_json,
 )
 
 router = APIRouter()
@@ -25,7 +27,11 @@ def home():
 
 @router.get("/style.css")
 def style_css():
-    return Response(CSS, media_type="text/css")
+    # The selected Theme, read per request: a switch on the Settings page
+    # shows on the next page load. The admin console links this file too.
+    # no-cache: the same URL serves new bytes after a switch.
+    return Response(theme_module.stylesheet().read_bytes(), media_type="text/css",
+                    headers={"Cache-Control": "no-cache"})
 
 
 @router.get("/search.html", response_class=HTMLResponse)

@@ -1,0 +1,28 @@
+{% extends "admin/base.html" %}
+{% block admin_content %}
+  <div class="page-head">
+    <h1>Settings</h1>
+  </div>
+  {% if saved == "theme" %}<p class="success">Theme saved. The exported site changes on the next <code>cms publish</code>, and the live site after <code>cms deploy</code>.</p>{% endif %}
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <form method="post" action="{{ to_root }}admin/settings" class="card settings-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <fieldset>
+      <legend>Theme</legend>
+      <p class="settings-form__hint">How the public site and this console look. Each theme changes
+        colours and type only; every page keeps its content and links.</p>
+      {% for theme in themes %}
+        <label class="theme-option">
+          <input type="radio" name="theme" value="{{ theme.name }}"{% if theme.name == selected_theme %} checked{% endif %}>
+          <span class="theme-option__text">
+            <span class="theme-option__name">{{ theme.name }}</span>
+            <span class="theme-option__description">{{ theme.description }}</span>
+          </span>
+        </label>
+      {% endfor %}
+    </fieldset>
+    <div class="form-actions">
+      <button type="submit">Save</button>
+    </div>
+  </form>
+{% endblock %}
